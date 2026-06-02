@@ -1,0 +1,4 @@
+interface:
+  display_name: "Skill Use Transparency"
+  short_description: "Make skill invocation visible and auditable"
+  default_prompt: "Use $skill-use-transparency to report which skills apply before continuing."

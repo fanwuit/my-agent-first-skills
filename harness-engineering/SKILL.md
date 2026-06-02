@@ -1,0 +1,109 @@
+---
+name: harness-engineering
+description: Use when choosing the current harness engineering layer, sequencing work across layers, resuming from a project queue, or interpreting continue/what next for work that may move between facts, brief, architecture, ADR, contract, implementation, verification, and review.
+---
+
+# Harness Engineering
+
+## 概览
+
+用 harness engineering 把一个想法逐层推进到可验证的实现。每一层都必须产出稳定证据，并作为下一层的输入。
+
+不要因为实现看起来很明显就跳层。如果当前层缺少可持久化的产物，应停留在当前层，先补齐缺失产物。
+
+## 层级链路
+
+```text
+Idea
+ ->
+Brainstorming
+ ->
+Brief
+ ->
+Architecture
+ ->
+ADR
+ ->
+Contract
+ ->
+Implementation
+ ->
+Verification
+ ->
+Review / Next
+```
+
+## 层级规则
+
+| 层级 | 目的 | 常见产物 | 退出条件 |
+|---|---|---|---|
+| Idea | 捕获原始意图，暂不急着定方案。 | 用户想法、issue、简短目标描述。 | 意图足够清楚，可以进入探索。 |
+| Brainstorming | 围绕想法做发散和收敛，识别路径、风险、边界和非目标。 | 方案选项、假设、取舍、风险清单。 | 可以把方向总结成一个明确任务。 |
+| Brief | 固定做什么、为什么做、为谁做、当前不做什么。 | brief、任务说明、范围文档。 | 目标、非目标、成功标准和约束都已明确。 |
+| Architecture | 定义系统边界、职责、数据流和所有权。 | 架构文档、模块图、数据流说明。 | 组件和接口足够清楚，可以做关键决策。 |
+| ADR | 记录重要决策、理由、备选方案和后果。 | ADR 或 decision note。 | 决策、理由、影响和验证方式已写清楚。 |
+| Contract | 把行为变成可机械检查的契约。 | schema、API 形态、fixture、example、probe、check 脚本。 | 成功路径和关键失败路径都可以被验证。 |
+| Implementation | 只实现已有边界和契约支撑的内容。 | 代码、配置、迁移脚本。 | 实现满足契约，且没有扩大范围。 |
+| Verification | 用新鲜证据证明结论。 | 测试输出、检查输出、截图、trace、diff。 | 相关检查通过，或失败原因被如实记录。 |
+| Review / Next | 把本轮结果反馈回项目状态。 | NEXT 队列、完成摘要、blocked/not-now 记录。 | 已完成事项、剩余风险和下一步动作都可被后续读取。 |
+
+## 过层检查
+
+进入下一层前，先问：
+
+- 当前层的哪个产物会被未来的 agent 或人读取？
+- 当前层验证或推翻了哪个假设？
+- 还有什么未知？
+- 是否已有文档、ADR、schema、fixture、probe、机械检查或队列项来保存结果？
+- 现在实现是否会产生没有契约或验证路径支撑的行为？
+
+如果答案不扎实，不要进入下一层。先补缺失的产物。
+
+## 常见流程
+
+新产品或复杂功能：
+
+```text
+Idea -> Brainstorming -> Brief -> Architecture -> ADR -> Contract -> Implementation -> Verification -> Review / Next
+```
+
+PoC 或外部行为探索：
+
+```text
+Idea -> Brainstorming -> Brief -> Contract probe/fixture/check -> 必要时补 ADR -> 有契约证据后才 Implementation
+```
+
+已有契约下的小 bugfix：
+
+```text
+从 bug 报告形成 Brief -> Implementation -> Verification -> Review / Next
+```
+
+下一步不明确时：
+
+```text
+Review / Next -> 选择第一个 ready 项 -> 判断它属于哪一层 -> 从该层继续
+```
+
+## 禁止捷径
+
+- 不要因为 probe 跑通，就把结果当成 product-ready，除非契约和验证层也支持这个结论。
+- 当边界、数据形态或失败行为仍未知时，不要写产品实现。
+- 不要把重要结论只留在聊天里；写入对应的稳定产物。
+- 当可以做结构化验证时，不要用截图、演示或主观观感替代 schema、fixture、probe 或 check。
+- 不要在实现后未经新鲜验证就声称完成。
+- 不要在 Implementation 中持续扩大范围；新发现应进入 Review / Next。
+
+## Review / Next
+
+任务结束时，如果结果改变了后续工作方式，应更新项目状态。
+
+记录：
+
+- 当前阶段已完成什么。
+- 还有哪些 active 且 ready 的下一步。
+- 哪些事情 blocked，以及为什么 blocked。
+- 哪些事情明确 not now。
+- 支撑当前状态的证据是什么。
+
+如果没有明确下一步，优先新增一个补 ADR、fixture、schema、probe 或机械检查的 ready 项，而不是直接跳到产品代码。
