@@ -107,3 +107,5 @@ Review / Next -> 选择第一个 ready 项 -> 判断它属于哪一层 -> 从该
 - 支撑当前状态的证据是什么。
 
 如果没有明确下一步，优先新增一个补 ADR、fixture、schema、probe 或机械检查的 ready 项，而不是直接跳到产品代码。
+
+如果已经连续补 contract、check、readiness 或其他治理产物，且下一步实现仍没有推进，先应用 `contract-growth-control` 判断是否应该进入最小 implementation slice、标记 blocked，或请求人工确认。

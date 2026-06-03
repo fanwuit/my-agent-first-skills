@@ -1,4 +1,4 @@
 interface:
   display_name: "Harness Engineering"
   short_description: "按层级把想法推进到可验证实现。"
-  default_prompt: "使用 harness engineering 判断当前项目层级，并决定实现前应先补哪类产物。"
+  default_prompt: "使用 $harness-engineering 判断当前项目层级，并决定实现前应先补哪类产物。"

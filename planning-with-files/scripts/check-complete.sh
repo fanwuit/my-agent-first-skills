@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # Check if all phases in task_plan.md are complete
 # Always exits 0 — uses stdout for status reporting
-# Used by Stop hook to report task completion status
+# Used by external runners to report task completion status
 #
 # Plan-file resolution (v2.40+):
 #   1. $1 (explicit path)
 #   2. resolve-plan-dir.sh: $PLAN_ID env → .planning/.active_plan → newest mtime
 #   3. Legacy ./task_plan.md
 #
-# This restores slug-mode parity: the Stop hook and any caller invoking with
+# This restores slug-mode parity: an external runner and any caller invoking with
 # zero args now respects the active plan dir instead of silently defaulting to
 # the legacy root path.
 

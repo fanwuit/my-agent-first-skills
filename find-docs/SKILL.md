@@ -1,37 +1,39 @@
 ---
 name: find-docs
 description: >-
-  Retrieves up-to-date documentation, API references, and code examples for any
-  developer technology. Use this skill whenever the user asks about a specific
-  library, framework, SDK, CLI tool, or cloud service -- even for well-known ones
-  like React, Next.js, Prisma, Express, Tailwind, Django, or Spring Boot. Your
-  training data may not reflect recent API changes or version updates.
-
-  Always use for: API syntax questions, configuration options, version migration
-  issues, "how do I" questions mentioning a library name, debugging that involves
-  library-specific behavior, setup instructions, and CLI tool usage.
-
-  Use even when you think you know the answer -- do not rely on training data
-  for API details, signatures, or configuration options as they are frequently
-  outdated. Always verify against current docs. Prefer this over web search for
-  library documentation and API details.
+  Retrieves current documentation, API references, and code examples for
+  non-OpenAI developer technologies. Use for library, framework, SDK, CLI tool,
+  or cloud-service questions involving API syntax, configuration, migrations,
+  setup, or library-specific debugging. Prefer project-local docs, generated
+  schemas, lockfiles, and source when the question is about this repo's actual
+  behavior. Do not use for OpenAI or Codex product/API docs; use openai-docs
+  instead. Prefer this over generic web search for non-OpenAI developer docs.
 ---
 
 # Documentation Lookup
 
 Retrieve current documentation and code examples for any library using the Context7 CLI.
 
-Make sure the CLI is up to date before running commands:
-
-```bash
-npm install -g ctx7@latest
-```
-
-Or run directly without installing:
+Prefer running Context7 through `npx` so the CLI stays current without a global install:
 
 ```bash
 npx ctx7@latest <command>
 ```
+
+If `ctx7` is already installed and known current, using it directly is fine:
+
+```bash
+ctx7 <command>
+```
+
+Do not run `npm install -g ctx7@latest` unless the user explicitly asks for a global install or the local environment already requires that path.
+
+## Source Priority
+
+1. If the request concerns OpenAI APIs, OpenAI products, Codex, models, or prompt upgrades, stop and use `openai-docs`.
+2. If the request asks how the current repo behaves, inspect repo-local docs, schemas, generated API references, lockfiles, source, and tests first.
+3. Use Context7 for external non-OpenAI API details, version-specific syntax, setup steps, and library-specific debugging.
+4. Use generic web search only when Context7 cannot answer and the user still needs current external information.
 
 ## Workflow
 

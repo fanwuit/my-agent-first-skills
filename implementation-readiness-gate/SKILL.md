@@ -31,6 +31,16 @@ description: Use before entering implementation or writing product code, especia
 
 每个 target 都需要自己的 readiness evidence。根目录的 `docs/linting.md` 或根级测试命令有价值，但不能替代 target-local lint、test、verification command 和 local coding rules。
 
+## Reference Map
+
+按 target 读取对应参考，不要一次性加载所有 reference：
+
+- 通用 checklist：`references/checklist.md`
+- Java backend：`references/java-backend-target.md`
+- Vue/Web frontend：`references/web-frontend-target.md`
+- Worker/runtime：`references/worker-runtime-target.md`
+- Shared package：`references/shared-package-target.md`
+
 ## 必需 Gate
 
 进入某个 target 的 implementation 前，确认该 target 已具备以下证据：

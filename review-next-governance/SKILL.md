@@ -51,6 +51,7 @@ Verification -> Review / Next
    - 如果下一项仍属于同一 focus 且用户没有要求暂停，可以继续。
    - 如果下一项会切换阶段、扩大范围或进入产品功能编码，应先汇报并等待确认。
    - 如果没有 clear ready 项，优先新增一个补 ADR、fixture、schema、probe 或 check 的 ready 项。
+   - 如果连续 ready 都是 contract/check/readiness/governance，先应用 `contract-growth-control`，不要让队列无限增长治理产物。
 
 5. 最终回复
    - 说明完成内容。

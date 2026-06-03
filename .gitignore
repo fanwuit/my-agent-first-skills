@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+.system/
+node_modules/
+dist/
+build/
+.vite/
+.vite.out
+.vite.err
+generated_images/

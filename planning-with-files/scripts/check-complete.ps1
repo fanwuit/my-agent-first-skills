@@ -1,6 +1,6 @@
 # Check if all phases in task_plan.md are complete
 # Always exits 0 -- uses stdout for status reporting
-# Used by Stop hook to report task completion status
+# Used by external runners to report task completion status
 
 param(
     [string]$PlanFile = "task_plan.md"
