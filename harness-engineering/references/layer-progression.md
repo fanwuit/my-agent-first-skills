@@ -67,6 +67,18 @@ Fact Discovery is conditional and can interrupt any layer when an unknown would 
 | `code-quality-drift-guard` | Implementation and verification guard against sprawl, duplicate helpers, orphan checks, and naming drift. |
 | `debugging-checklist` | Human handoff fallback, not the primary agent debugging workflow when a stronger workflow is available. |
 
+## Execution Mode Routing
+
+Execution modes do not create new harness layers. They decide how work at the current layer is executed.
+
+| Mode | Scope | When to use | Must not do |
+|---|---|---|---|
+| `manual` | Current chat or session | Human is actively steering, or the task is small enough to finish in one session. | Do not treat chat-only results as durable artifacts. |
+| `autonomous` | Queue-driven fresh `codex exec` workers | Work should continue across short workers from NEXT, TODO, backlog, issue queues, or checkpoints. | Do not bypass layer progression, readiness gates, checkpointing, or autonomous stop markers. |
+| `subagent-driven` | Inside one implementation session or autonomous worker | Current layer is `implementation`, readiness has passed, and implementation task packets are complete. | Do not consume raw NEXT, TODO, backlog, or checkpoint ready items directly. |
+
+`autonomous-ready-loop` is an execution mode for selecting and running ready layer work. `superpowers:subagent-driven-development` is an implementation execution mode used only after readiness and packetization.
+
 ## Transition Rules
 
 1. Do not enter `implementation` before `readiness` unless the user explicitly asks for a throwaway prototype or the target project already supplies equivalent readiness rules.

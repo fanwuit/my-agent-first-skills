@@ -87,6 +87,15 @@ Verification -> Review / Next
 
 `Layer:` 应使用 `harness-engineering/references/layer-progression.md` 中定义的标准层级标签。若当前层级不明确，先用 `harness-engineering` 判断，不要临时发明新层级名。跨多个层级的任务应先记录当前阻塞层；后续层级只写在 notes、risk 或 done-when 说明里。
 
+对 `Layer: implementation` 的 ready 项，补充以下字段：
+
+```markdown
+- Packetization: missing | ready | not-needed
+- Task packets: path 或队列 section，指向自包含 implementation packets
+```
+
+如果 `Packetization: missing`，下一步应先补 task packets，不要直接启动 `superpowers:subagent-driven-development`。如果 `Packetization: ready`，task packets 必须包含 owner files、contracts、allowed assumptions、forbidden shortcuts、stop conditions、verification 和 done-when。
+
 ## 完成级别
 
 可按项目需要使用这些级别：
