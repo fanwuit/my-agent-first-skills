@@ -1,6 +1,6 @@
 ---
 name: harness-engineering
-description: Use when choosing the current harness engineering layer, mapping local governance skills to the explicit layer progression, sequencing work across layers, resuming from a project queue, interpreting continue/what next, or routing optional companion skills such as superpowers:*.
+description: Use when choosing the current harness engineering layer, mapping local governance skills to the explicit layer progression, sequencing work across layers, deciding whether complex work needs a durable change packet, resuming from a project queue, interpreting continue/what next, or routing optional companion skills such as superpowers:*.
 ---
 
 # Harness Engineering
@@ -32,6 +32,20 @@ When choosing a harness layer, check whether relevant companion skills are avail
 Companion skills are optional unless a project rule or user request explicitly marks them as required. If a companion skill is unavailable, disclose that it is unavailable and continue with the local fallback.
 
 Read `references/superpowers-routing.md` when the task touches brainstorming, implementation planning, debugging, TDD, verification, code review, skill writing, worktree setup, parallel execution, or any workflow that appears to overlap with `superpowers:*`.
+
+## Change Packet Routing
+
+Use a change packet only as a durable carrier for complex work. It does not create a new harness layer and it does not approve implementation.
+
+Read `references/change-packet-model.md` when:
+
+- Work spans more than one harness layer or likely needs multiple sessions.
+- Work touches multiple modules, services, packages, tools, or repositories.
+- A queue item needs more context than fits cleanly in NEXT, TODO, backlog, or checkpoint files.
+- The task needs proposal, design, tasks, contracts, and verification evidence kept together.
+- The user asks to borrow OpenSpec-like change/spec/task/archive ideas.
+
+Do not create a change packet for a small single-layer edit, a simple command, a one-off answer, or a task whose context is already fully captured by an existing ADR, contract, queue item, or checkpoint.
 
 ## 层级链路
 
@@ -77,6 +91,7 @@ Review / Next
 - 当前层验证或推翻了哪个假设？
 - 还有什么未知？
 - 是否已有文档、ADR、schema、fixture、probe、机械检查或队列项来保存结果？
+- 当前工作是否复杂到需要 change packet 承载上下文？
 - 现在实现是否会产生没有契约或验证路径支撑的行为？
 
 如果答案不扎实，不要进入下一层。先补缺失的产物。
@@ -127,6 +142,7 @@ Review / Next -> 选择第一个 ready 项 -> 判断它属于哪一层 -> 从该
 - 哪些事情 blocked，以及为什么 blocked。
 - 哪些事情明确 not now。
 - 支撑当前状态的证据是什么。
+- 如果使用了 change packet，哪些结论已经归档回 ADR、schema、example、verification、doc map 或队列状态。
 
 如果没有明确下一步，优先新增一个补 ADR、fixture、schema、probe 或机械检查的 ready 项，而不是直接跳到产品代码。
 
