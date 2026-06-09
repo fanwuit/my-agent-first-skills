@@ -103,7 +103,7 @@ Idea
 - `references/superpowers-routing.md`
 - `references/change-packet-model.md`
 
-用于判断当前层级、下一步和与可选 companion skills 的关系。
+用于判断当前层级、下一步和与可选 companion skills 的关系。与 `superpowers:*` 等 companion workflow 重叠时，先选择并读取匹配的本地 governance skills，由本地 skill 决定层级、边界、角色隔离、准入、契约、验证和 review/next 义务；companion workflow 只在治理规则明确后辅助执行。规则不依赖具体安装目录，应使用当前会话暴露的 skill 名称和路径。
 
 ### `execution-prompt-authoring`
 
@@ -127,6 +127,7 @@ Idea
 ## 使用建议
 
 - 新想法或范围不清时，从 `brainstorm-to-brief` 开始。
+- 任何 `superpowers:*` 或其他 companion workflow 看起来适用时，先检查当前 skill 列表中是否有匹配的本地 governance skill；不要因为 companion workflow 功能相似就跳过本地 skill。
 - 行为未知时，先用 `observable-fact-discovery` 固定事实。
 - 涉及多个组件或边界时，进入 `architecture-boundary-design`，必要时再写 `adr-writing`。
 - 新 API、schema、CLI、fixture、外部行为或失败路径，应先用 `contract-first-development`。

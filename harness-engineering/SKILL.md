@@ -27,9 +27,11 @@ Do not infer precedence from folder order, plugin order, or the order of skills 
 
 ## Companion Skill Routing
 
-When choosing a harness layer, check whether relevant companion skills are available in the current skill list.
+When choosing a harness layer, check matching local governance skills first. Local governance skills decide layer, boundaries, role isolation, readiness, verification obligations, and review/next state.
 
-Companion skills are optional unless a project rule or user request explicitly marks them as required. If a companion skill is unavailable, disclose that it is unavailable and continue with the local fallback.
+After local governance is selected, check whether relevant companion skills are available in the current skill list. Companion skills are optional unless a project rule or user request explicitly marks them as required. If a companion skill is unavailable, disclose that it is unavailable and continue with the local fallback.
+
+Do not treat a companion workflow as replacing a matching local governance skill. For example, a subagent workflow can execute work, but it does not replace local role isolation, readiness, contract, verification, or review governance when those skills match the task.
 
 Read `references/superpowers-routing.md` when the task touches brainstorming, implementation planning, debugging, TDD, verification, code review, skill writing, worktree setup, parallel execution, or any workflow that appears to overlap with `superpowers:*`.
 

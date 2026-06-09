@@ -4,12 +4,17 @@
 
 Do not assume `superpowers:*` skills exist in the target environment.
 
+Before routing to a companion workflow, check the current skill list for matching local governance skills. Local governance skills own layer, boundary, role isolation, readiness, contract, verification, and review/next decisions. `superpowers:*` skills are companion execution workflows, not replacements for matching local governance skills.
+
+Do not hardcode a user's skill directory. Use the skill paths exposed in the current session or the active environment's skill discovery mechanism.
+
 For each routed workflow:
 
-1. Check whether the named `superpowers:*` skill is available in the current skill list.
-2. If available, use it as the preferred companion workflow.
-3. If unavailable, say it is unavailable and use the local fallback.
-4. Stop only when the route is explicitly marked `required`.
+1. Select and load any matching local governance skills first.
+2. Check whether the named `superpowers:*` skill is available in the current skill list.
+3. If available, use it as a companion workflow after local governance rules are known.
+4. If unavailable, say it is unavailable and use the local fallback.
+5. Stop only when the route is explicitly marked `required`.
 
 ## Routing Matrix
 
@@ -37,3 +42,12 @@ Preferred companion skill <skill-name> is unavailable in this environment. Conti
 ```
 
 Do not claim the companion workflow was executed unless its `SKILL.md` was actually loaded.
+
+When a companion workflow overlaps local governance, report:
+
+```text
+Local governance skills: <selected local skills>
+Companion workflow skills: <selected companion skills>
+Loaded SKILL.md files: <success/failure list>
+Routing decision: local governance owns <layer/boundary/readiness/etc.>; companion workflow executes <workflow>.
+```

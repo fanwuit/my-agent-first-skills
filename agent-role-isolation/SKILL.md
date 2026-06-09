@@ -22,6 +22,8 @@ Before coding or changing tests, decide whether the current task touches more th
 
 If two or more roles are involved, apply this workflow. If the project has stricter local rules, follow the stricter rule.
 
+If a companion workflow already uses subagents, reviewers, or TDD helpers, still apply this workflow when the task matches the trigger. Companion workflows can execute role separation, but they do not replace the local obligation to classify roles, constrain handoffs, and verify independently.
+
 ## Hard Rules
 
 - Do not let the same agent context both create acceptance tests and declare final acceptance of the implementation.
@@ -29,6 +31,7 @@ If two or more roles are involved, apply this workflow. If the project has stric
 - Do not treat "the tests I just wrote pass" as final verification.
 - Do not let an implementer expand scope beyond the planner's explicit success criteria.
 - Do not keep role handoffs only in chat when the project has a queue, brief, ADR, fixture, schema, test, or check location.
+- Do not skip this skill because another workflow has a similar role split. State how that workflow satisfies this skill's role isolation requirements.
 
 ## Workflow
 

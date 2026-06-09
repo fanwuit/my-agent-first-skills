@@ -17,6 +17,14 @@ Before applying any skill, state:
 - Why each skill applies to the current request.
 - Whether the trigger came from an explicit user request or agent inference.
 
+When local governance skills and companion workflow skills both appear to match, disclose them separately:
+
+- `Local governance skills`: skills that decide layer, boundary, role isolation, readiness, contract, verification, or review obligations.
+- `Companion workflow skills`: skills that execute or support a workflow after governance is known, such as optional planning, TDD, review, or branch-finish helpers.
+- `Routing decision`: which skill owns the decision and which skill only assists execution.
+
+Do not hardcode a user's skill directory in disclosure. Use skill names and the skill paths exposed by the current session when paths are needed.
+
 After attempting to load each `SKILL.md`, state:
 
 - Whether the file was read successfully.
@@ -53,6 +61,8 @@ For local files that may contain non-ASCII text, prefer an explicit UTF-8 read b
 | Saying a workflow was executed after a read error | Say it was not fully available and use fallback. |
 | Treating metadata as the full skill | Load `SKILL.md` before claiming workflow details. |
 | Answering "did you use skill X?" indirectly | Give selected, trigger, loaded, and executed status. |
+| Letting a companion workflow hide a matching local governance skill | List local governance skills separately and load them first. |
+| Hardcoding one user's skill install path | Use current-session skill paths or skill names instead. |
 
 ## Final Check
 
