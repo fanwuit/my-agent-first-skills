@@ -7,7 +7,9 @@
   [string]$CheckpointFile = '.harness/run-checkpoint.md',
   [string]$Model = '',
   [string]$VerificationCommand = '',
-  [switch]$CommitAllowed
+  [switch]$CommitAllowed,
+  [string]$HarnessStatusScript = $env:HARNESS_STATUS_SCRIPT,
+  [switch]$SkipStatusRefresh
 )
 
 $ErrorActionPreference = 'Stop'
@@ -21,6 +23,50 @@ New-Item -ItemType Directory -Force -Path $harnessDir | Out-Null
 $lastMessage = Join-Path $harnessDir 'last-codex-message.md'
 $promptFile = Join-Path $harnessDir 'autonomous-worker-prompt.txt'
 $checkpointPath = Join-Path $repoPath $CheckpointFile
+
+function Resolve-HarnessStatusScript {
+  param([string]$ExplicitPath)
+  $candidates = @()
+  if ($ExplicitPath) { $candidates += $ExplicitPath }
+  if ($PSScriptRoot) { $candidates += (Join-Path $PSScriptRoot '..\..\harness-visualization\scripts\harness-status.mjs') }
+  if ($env:CODEX_HOME) { $candidates += (Join-Path $env:CODEX_HOME 'skills\harness-visualization\scripts\harness-status.mjs') }
+  if ($HOME) { $candidates += (Join-Path $HOME '.codex\skills\harness-visualization\scripts\harness-status.mjs') }
+  foreach ($candidate in $candidates) {
+    if ($candidate -and (Test-Path -LiteralPath $candidate)) {
+      return (Resolve-Path -LiteralPath $candidate).Path
+    }
+  }
+  return $null
+}
+
+function Invoke-HarnessStatusRefresh {
+  param([string]$Reason)
+  if ($SkipStatusRefresh) { return }
+  if (-not $statusScriptPath) {
+    Write-Warning "Harness status refresh skipped after $Reason; harness-status.mjs was not found. Set -HarnessStatusScript or HARNESS_STATUS_SCRIPT."
+    return
+  }
+  try {
+    & node $statusScriptPath --repo $repoPath --queue $QueueFile --checkpoint $CheckpointFile --write-md --write-json | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+      Write-Warning "Harness status refresh failed after $Reason with exit code $LASTEXITCODE."
+    }
+  } catch {
+    Write-Warning "Harness status refresh failed after ${Reason}: $($_.Exception.Message)"
+  }
+}
+
+function Write-RunCheckpoint {
+  param([string]$Path,[string]$QueueFile,[int]$Round,[string]$Result,[string]$StopReason)
+  $directory = Split-Path -Parent $Path
+  if ($directory) { New-Item -ItemType Directory -Force -Path $directory | Out-Null }
+  $timestamp = Get-Date -Format o
+  $content = @('# Run Checkpoint','','## Last Worker',"- Started: $timestamp","- Queue item: first ready from $QueueFile","- Result: $Result",'','## Durable State Updated','- Runner wrote this checkpoint after a worker stop/failure path.','','## Verification','- Not completed by runner after worker stop/failure.','','## Next Resume Source',"- Queue: $QueueFile",'- First ready item: read from queue before next worker starts','','## Stop Reason',"- Round ${Round}: $StopReason") -join [Environment]::NewLine
+  Set-Content -LiteralPath $Path -Value $content -Encoding UTF8
+  Invoke-HarnessStatusRefresh -Reason "checkpoint write for round $Round"
+}
+
+$statusScriptPath = Resolve-HarnessStatusScript -ExplicitPath $HarnessStatusScript
 
 for ($round = 1; $round -le $MaxRounds; $round++) {
   $verificationLine = if ($VerificationCommand) { ": $VerificationCommand" } else { '' }
@@ -86,15 +132,7 @@ for ($round = 1; $round -le $MaxRounds; $round++) {
       }
     } finally { Pop-Location }
   }
+  Invoke-HarnessStatusRefresh -Reason "round $round completed"
 }
 
 Write-Host "Reached MaxRounds=$MaxRounds."
-
-function Write-RunCheckpoint {
-  param([string]$Path,[string]$QueueFile,[int]$Round,[string]$Result,[string]$StopReason)
-  $directory = Split-Path -Parent $Path
-  if ($directory) { New-Item -ItemType Directory -Force -Path $directory | Out-Null }
-  $timestamp = Get-Date -Format o
-  $content = @('# Run Checkpoint','','## Last Worker',"- Started: $timestamp","- Queue item: first ready from $QueueFile","- Result: $Result",'','## Durable State Updated','- Runner wrote this checkpoint after a worker stop/failure path.','','## Verification','- Not completed by runner after worker stop/failure.','','## Next Resume Source',"- Queue: $QueueFile",'- First ready item: read from queue before next worker starts','','## Stop Reason',"- Round ${Round}: $StopReason") -join [Environment]::NewLine
-  Set-Content -LiteralPath $Path -Value $content -Encoding UTF8
-}

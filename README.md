@@ -99,7 +99,7 @@ Idea
 - `assets/run-autonomous-ready-loop.sh`
 - `references/runner-contract.md`
 
-目标是让长任务由多个短 `codex exec` worker 通过仓库文件交接，而不是依赖单个长聊天上下文。
+目标是让长任务由多个短 `codex exec` worker 通过仓库文件交接，而不是依赖单个长聊天上下文。runner 模板会在每轮完成或 checkpoint 写入后尝试调用通用 `harness-visualization` 刷新 `.harness/status.md` 和 `.harness/status.json`；找不到脚本时只警告，避免把可视化依赖变成 worker 主流程阻断点。
 
 ### `implementation-readiness-gate`
 
@@ -144,7 +144,7 @@ Idea
 - `tests/harness-status.test.mjs`
 - `tests/fixtures/sample-repo/`
 
-脚本默认只读扫描目标项目的 `NEXT.md`、`docs/changes/*/tasks.md`、`.harness/run-checkpoint.md` 和 `.harness/codex-exec-invocations.ndjson`，输出终端文本；使用 `--format json` 可供 agent、TUI 或 Web UI 消费；使用 `--write-md` / `--write-json` 可写入目标项目 `.harness/status.md` 和 `.harness/status.json`。它只负责可见性，不推进队列、不替代 gate 或 verification。
+脚本默认只读扫描目标项目的 `NEXT.md`、`docs/changes/*/tasks.md`、`.harness/run-checkpoint.md` 和 `.harness/codex-exec-invocations.ndjson`，输出终端文本；使用 `--format json` 可供 agent、TUI 或 Web UI 消费；使用 `--write-md` / `--write-json` 可写入目标项目 `.harness/status.md` 和 `.harness/status.json`。使用 `--init` 可生成 `.harness/harness-status.config.json`，用于覆盖 queue、change root、checkpoint、invocation log 和 status 输出路径。它只负责可见性，不推进队列、不替代 gate 或 verification。
 
 ## 未启用但存在
 
@@ -172,7 +172,7 @@ Idea
 - 新 API、schema、CLI、fixture、外部行为或失败路径，应先用 `contract-first-development`。
 - 进入产品实现前，按 target 使用 `implementation-readiness-gate`。
 - 完成后用 `review-next-governance` 更新队列、风险和下一步。
-- 长时间自治推进时，使用 `autonomous-ready-loop`、`harness-status-dashboard` 和 `harness-visualization`，分别负责执行循环、状态判断和可读/JSON 仪表输出。
+- 长时间自治推进时，使用 `autonomous-ready-loop`、`harness-status-dashboard` 和 `harness-visualization`，分别负责执行循环、状态判断和可读/JSON 仪表输出；业务项目只暴露标准状态源，通用 runner/status 脚本负责刷新可视化状态。
 - 文档、队列、索引或治理规则漂移时，使用 `document-gardener`。
 - 写、审计或迁移 API/doc 生成链路上的代码注释时，使用 `doc-comment-policy`。
 - 已确认的多 worker、多角色或 change packet 需要落成可审计执行提示词时，使用 `execution-prompt-authoring`。

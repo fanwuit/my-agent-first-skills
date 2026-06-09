@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 REPO="${REPO:-$(pwd)}"
@@ -10,6 +10,8 @@ CHECKPOINT_FILE="${CHECKPOINT_FILE:-.harness/run-checkpoint.md}"
 MODEL="${MODEL:-}"
 VERIFICATION_COMMAND="${VERIFICATION_COMMAND:-}"
 COMMIT_ALLOWED="${COMMIT_ALLOWED:-false}"
+HARNESS_STATUS_SCRIPT="${HARNESS_STATUS_SCRIPT:-}"
+SKIP_STATUS_REFRESH="${SKIP_STATUS_REFRESH:-false}"
 
 if [ "$RUN_UNTIL_BOUNDARY" = "true" ] && [ "$MAX_ROUNDS" = "1" ]; then MAX_ROUNDS=50; fi
 
@@ -19,6 +21,37 @@ mkdir -p "$HARNESS_DIR"
 LAST_MESSAGE="$HARNESS_DIR/last-codex-message.md"
 PROMPT_FILE="$HARNESS_DIR/autonomous-worker-prompt.txt"
 CHECKPOINT_PATH="$REPO_PATH/$CHECKPOINT_FILE"
+
+resolve_harness_status_script() {
+  local script_dir candidate candidate_dir
+  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  for candidate in \
+    "$HARNESS_STATUS_SCRIPT" \
+    "$script_dir/../../harness-visualization/scripts/harness-status.mjs" \
+    "${CODEX_HOME:-}/skills/harness-visualization/scripts/harness-status.mjs" \
+    "$HOME/.codex/skills/harness-visualization/scripts/harness-status.mjs"; do
+    if [ -n "$candidate" ] && [ -f "$candidate" ]; then
+      candidate_dir="$(cd "$(dirname "$candidate")" && pwd)"
+      printf '%s/%s\n' "$candidate_dir" "$(basename "$candidate")"
+      return 0
+    fi
+  done
+  return 1
+}
+
+STATUS_SCRIPT="$(resolve_harness_status_script || true)"
+
+refresh_harness_status() {
+  local reason="$1"
+  if [ "$SKIP_STATUS_REFRESH" = "true" ]; then return 0; fi
+  if [ -z "$STATUS_SCRIPT" ]; then
+    echo "Harness status refresh skipped after $reason; harness-status.mjs was not found. Set HARNESS_STATUS_SCRIPT." >&2
+    return 0
+  fi
+  if ! node "$STATUS_SCRIPT" --repo "$REPO_PATH" --queue "$QUEUE_FILE" --checkpoint "$CHECKPOINT_FILE" --write-md --write-json >/dev/null; then
+    echo "Harness status refresh failed after $reason." >&2
+  fi
+}
 
 write_checkpoint() {
   local round="$1" result="$2" stop_reason="$3"
@@ -44,6 +77,7 @@ write_checkpoint() {
 ## Stop Reason
 - Round $round: $stop_reason
 CHECKPOINT
+  refresh_harness_status "checkpoint write for round $round"
 }
 
 round=1
@@ -85,6 +119,7 @@ PROMPT
   if [ -n "$VERIFICATION_COMMAND" ]; then
     if ! (cd "$REPO_PATH" && eval "$VERIFICATION_COMMAND"); then write_checkpoint "$round" "failed" "verification failed after round $round"; exit 1; fi
   fi
+  refresh_harness_status "round $round completed"
   round=$((round + 1))
 done
 

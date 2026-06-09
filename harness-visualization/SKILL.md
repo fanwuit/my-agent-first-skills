@@ -18,6 +18,7 @@ description: Use when a project needs a read-only harness status view, ready que
 优先运行 bundled script：
 
 ```bash
+node harness-visualization/scripts/harness-status.mjs --repo <project> --init
 node harness-visualization/scripts/harness-status.mjs --repo <project>
 node harness-visualization/scripts/harness-status.mjs --repo <project> --format json
 node harness-visualization/scripts/harness-status.mjs --repo <project> --write-md --write-json
@@ -29,6 +30,7 @@ node harness-visualization/scripts/harness-status.mjs --repo <project> --write-m
 - Checkpoint：`.harness/run-checkpoint.md`
 - Invocation log：`.harness/codex-exec-invocations.ndjson`
 - Change packets：`docs/changes/*/tasks.md`
+- Config：`.harness/harness-status.config.json`
 
 ## Status Contract
 
@@ -43,11 +45,12 @@ Dashboard 必须至少显示：
 
 ## Project Integration
 
-业务项目只需要提供状态源：
+通用 layer 负责解析、刷新和展示；业务项目只提供状态源：
 
 - 在 `NEXT.md` 或等价队列中为条目写 `Layer:`、`Change:`、`Packetization:`、`Evidence:`。
 - 复杂任务使用 `docs/changes/<id>/tasks.md` checkbox 记录 packet 进度。
 - autonomous runner 每轮写 `.harness/run-checkpoint.md` 和 `.harness/codex-exec-invocations.ndjson`。
+- 路径不符合默认约定时，运行 `--init` 后只改 `.harness/harness-status.config.json`。
 - 人看 `.harness/status.md`，agent 或后续 TUI/Web UI 读 `.harness/status.json`。
 
 ## Boundaries
@@ -55,6 +58,7 @@ Dashboard 必须至少显示：
 - 不要把 dashboard 当作 gate；gate/check 失败仍由对应 readiness、contract、verification 规则处理。
 - 不要静默修改队列状态；`--write-md` 和 `--write-json` 只写 status 输出。
 - 不要从聊天记录恢复状态；只读取 repo 文件。
+- 不要要求每个业务项目复制刷新逻辑；把自动刷新接在通用 runner 或通用命令上。
 - 不要在本 skill 中实现 TUI/Web UI；先稳定 JSON contract，再由项目或独立工具消费。
 
 ## Common Mistakes

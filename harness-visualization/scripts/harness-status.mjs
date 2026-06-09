@@ -19,6 +19,15 @@ const LAYERS = [
 ];
 
 const MARKER_PATTERN = /\bAUTONOMOUS_(?:READY_DONE|CONTEXT_HANDOFF|BLOCKED|BOUNDARY_REACHED|FAILED)\b/;
+const DEFAULT_CONFIG_PATH = '.harness/harness-status.config.json';
+const DEFAULT_PROJECT_CONFIG = Object.freeze({
+  queue: 'NEXT.md',
+  checkpoint: '.harness/run-checkpoint.md',
+  invocationLog: '.harness/codex-exec-invocations.ndjson',
+  changes: 'docs/changes',
+  statusMd: '.harness/status.md',
+  statusJson: '.harness/status.json',
+});
 
 function normalizeStatus(value) {
   return String(value || '').trim().toLowerCase().replace(/\s+/g, '-');
@@ -40,12 +49,12 @@ async function readText(filePath) {
 function parseArgs(argv) {
   const options = {
     repo: process.cwd(),
-    queue: 'NEXT.md',
-    checkpoint: '.harness/run-checkpoint.md',
-    invocationLog: '.harness/codex-exec-invocations.ndjson',
+    config: DEFAULT_CONFIG_PATH,
     format: 'text',
     writeMd: false,
     writeJson: false,
+    init: false,
+    force: false,
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -63,6 +72,18 @@ function parseArgs(argv) {
     } else if (arg === '--invocation-log') {
       options.invocationLog = next;
       index += 1;
+    } else if (arg === '--changes') {
+      options.changes = next;
+      index += 1;
+    } else if (arg === '--status-md') {
+      options.statusMd = next;
+      index += 1;
+    } else if (arg === '--status-json') {
+      options.statusJson = next;
+      index += 1;
+    } else if (arg === '--config') {
+      options.config = next;
+      index += 1;
     } else if (arg === '--format') {
       options.format = next;
       index += 1;
@@ -72,6 +93,10 @@ function parseArgs(argv) {
       options.writeMd = true;
     } else if (arg === '--write-json') {
       options.writeJson = true;
+    } else if (arg === '--init') {
+      options.init = true;
+    } else if (arg === '--force') {
+      options.force = true;
     } else if (arg === '--help' || arg === '-h') {
       options.help = true;
     } else {
@@ -84,6 +109,61 @@ function parseArgs(argv) {
   }
 
   return options;
+}
+
+function definedOnly(values) {
+  return Object.fromEntries(Object.entries(values).filter(([, value]) => value !== undefined));
+}
+
+async function readJsonConfig(filePath) {
+  const content = await readText(filePath);
+  if (!content) return {};
+  try {
+    return JSON.parse(content);
+  } catch (error) {
+    throw new Error(`Could not parse harness status config at ${filePath}: ${error.message}`);
+  }
+}
+
+async function resolveStatusOptions(options = {}) {
+  const repoPath = path.resolve(options.repo || process.cwd());
+  const configPath = options.config || DEFAULT_CONFIG_PATH;
+  const configFile = path.resolve(repoPath, configPath);
+  const fileConfig = await readJsonConfig(configFile);
+  const cliConfig = definedOnly({
+    queue: options.queue,
+    checkpoint: options.checkpoint,
+    invocationLog: options.invocationLog,
+    changes: options.changes,
+    statusMd: options.statusMd,
+    statusJson: options.statusJson,
+  });
+
+  return {
+    repoPath,
+    configPath,
+    ...DEFAULT_PROJECT_CONFIG,
+    ...fileConfig,
+    ...cliConfig,
+  };
+}
+
+async function initProjectConfig(options = {}) {
+  const repoPath = path.resolve(options.repo || process.cwd());
+  const configPath = options.config || DEFAULT_CONFIG_PATH;
+  const configFile = path.resolve(repoPath, configPath);
+  const existing = await readText(configFile);
+  if (existing && !options.force) {
+    return { repoPath, configPath, created: false, reason: 'exists' };
+  }
+
+  const content = {
+    schemaVersion: 1,
+    ...DEFAULT_PROJECT_CONFIG,
+  };
+  await mkdir(path.dirname(configFile), { recursive: true });
+  await writeFile(configFile, `${JSON.stringify(content, null, 2)}\n`, 'utf8');
+  return { repoPath, configPath, created: true };
 }
 
 function parseQueueMarkdown(content, queuePath = 'NEXT.md') {
@@ -199,7 +279,7 @@ async function pathExists(dirPath) {
   }
 }
 
-async function discoverChangeDirs(repoPath, readyItems) {
+async function discoverChangeDirs(repoPath, readyItems, changesRootPath) {
   const found = new Map();
   for (const item of readyItems) {
     if (!item.change) continue;
@@ -207,7 +287,7 @@ async function discoverChangeDirs(repoPath, readyItems) {
     found.set(absolute, item.change);
   }
 
-  const changesRoot = path.join(repoPath, 'docs', 'changes');
+  const changesRoot = path.resolve(repoPath, changesRootPath);
   if (await pathExists(changesRoot)) {
     const entries = await readdir(changesRoot, { withFileTypes: true });
     for (const entry of entries) {
@@ -220,9 +300,9 @@ async function discoverChangeDirs(repoPath, readyItems) {
   return [...found.entries()].map(([absolute, relative]) => ({ absolute, relative }));
 }
 
-async function readTaskPackets(repoPath, readyItems, warnings) {
+async function readTaskPackets(repoPath, readyItems, changesRootPath, warnings) {
   const packets = [];
-  const dirs = await discoverChangeDirs(repoPath, readyItems);
+  const dirs = await discoverChangeDirs(repoPath, readyItems, changesRootPath);
 
   for (const dir of dirs) {
     const tasksPath = path.join(dir.absolute, 'tasks.md');
@@ -318,10 +398,8 @@ function summarizeVerification(checkpoint, invocations) {
 }
 
 export async function buildStatus(options = {}) {
-  const repoPath = path.resolve(options.repo || process.cwd());
-  const queue = options.queue || 'NEXT.md';
-  const checkpoint = options.checkpoint || '.harness/run-checkpoint.md';
-  const invocationLog = options.invocationLog || '.harness/codex-exec-invocations.ndjson';
+  const resolved = await resolveStatusOptions(options);
+  const { repoPath, queue, checkpoint, invocationLog, changes } = resolved;
   const warnings = [];
 
   const queuePath = path.join(repoPath, queue);
@@ -330,7 +408,7 @@ export async function buildStatus(options = {}) {
   const readyItems = parseQueueMarkdown(queueContent, queue);
 
   const currentLayer = inferCurrentLayer(readyItems);
-  const taskPackets = await readTaskPackets(repoPath, readyItems, warnings);
+  const taskPackets = await readTaskPackets(repoPath, readyItems, changes, warnings);
   const checkpointData = parseCheckpoint(await readText(path.join(repoPath, checkpoint)), checkpoint);
   if (!checkpointData.found) warnings.push(`Checkpoint not found: ${checkpoint}`);
 
@@ -345,6 +423,15 @@ export async function buildStatus(options = {}) {
   return {
     repo: repoPath,
     generatedAt: new Date().toISOString(),
+    config: {
+      path: resolved.configPath,
+      queue,
+      checkpoint,
+      invocationLog,
+      changes,
+      statusMd: resolved.statusMd,
+      statusJson: resolved.statusJson,
+    },
     currentLayer,
     layerTimeline: buildLayerTimeline(currentLayer),
     readySummary: summarizeReady(readyItems),
@@ -480,13 +567,19 @@ function printHelp() {
 
 Options:
   --repo <path>              Project repository to inspect. Defaults to cwd.
+  --init                     Create .harness/harness-status.config.json with default paths.
+  --force                    With --init, overwrite an existing config.
+  --config <path>            Config file relative to repo. Defaults to .harness/harness-status.config.json.
   --queue <path>             Queue file relative to repo. Defaults to NEXT.md.
   --checkpoint <path>        Checkpoint file relative to repo. Defaults to .harness/run-checkpoint.md.
   --invocation-log <path>    Invocation ndjson relative to repo. Defaults to .harness/codex-exec-invocations.ndjson.
+  --changes <path>           Change packet root relative to repo. Defaults to docs/changes.
+  --status-md <path>         Markdown output path relative to repo. Defaults to .harness/status.md.
+  --status-json <path>       JSON output path relative to repo. Defaults to .harness/status.json.
   --format <text|json|markdown>
   --json                     Alias for --format json.
-  --write-md                 Write .harness/status.md in the target repo.
-  --write-json               Write .harness/status.json in the target repo.
+  --write-md                 Write markdown status in the target repo.
+  --write-json               Write JSON status in the target repo.
   --help                     Show help.`);
 }
 
@@ -496,16 +589,26 @@ async function main() {
     printHelp();
     return;
   }
+  if (options.init) {
+    const result = await initProjectConfig(options);
+    const action = result.created ? 'Created' : 'Skipped existing';
+    console.log(`${action} ${result.configPath} in ${result.repoPath}`);
+    return;
+  }
 
   const status = await buildStatus(options);
   const markdown = formatMarkdown(status);
 
   if (options.writeMd || options.writeJson) {
-    const harnessDir = path.join(status.repo, '.harness');
-    await mkdir(harnessDir, { recursive: true });
-    if (options.writeMd) await writeFile(path.join(harnessDir, 'status.md'), markdown, 'utf8');
+    if (options.writeMd) {
+      const statusMdPath = path.resolve(status.repo, status.config.statusMd);
+      await mkdir(path.dirname(statusMdPath), { recursive: true });
+      await writeFile(statusMdPath, markdown, 'utf8');
+    }
     if (options.writeJson) {
-      await writeFile(path.join(harnessDir, 'status.json'), `${JSON.stringify(status, null, 2)}\n`, 'utf8');
+      const statusJsonPath = path.resolve(status.repo, status.config.statusJson);
+      await mkdir(path.dirname(statusJsonPath), { recursive: true });
+      await writeFile(statusJsonPath, `${JSON.stringify(status, null, 2)}\n`, 'utf8');
     }
   }
 

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -71,6 +71,54 @@ test('write flags create status artifacts without mutating queues', async () => 
     assert.match(markdown, /Current layer: unknown/);
     assert.equal(json.currentLayer, 'unknown');
     assert.ok(json.warnings.some((warning) => warning.includes('Queue file not found')));
+  } finally {
+    await rm(tempRepo, { recursive: true, force: true });
+  }
+});
+
+test('CLI init creates reusable project config', async () => {
+  const tempRepo = await mkdtemp(path.join(os.tmpdir(), 'harness-status-init-'));
+  try {
+    const { stdout } = await execFileAsync(process.execPath, [scriptPath, '--repo', tempRepo, '--init']);
+    const config = JSON.parse(await readFile(path.join(tempRepo, '.harness', 'harness-status.config.json'), 'utf8'));
+
+    assert.match(stdout, /Created .harness\/harness-status.config.json/);
+    assert.equal(config.schemaVersion, 1);
+    assert.equal(config.queue, 'NEXT.md');
+    assert.equal(config.statusJson, '.harness/status.json');
+  } finally {
+    await rm(tempRepo, { recursive: true, force: true });
+  }
+});
+
+test('project config can move queue, changes root, and status outputs', async () => {
+  const tempRepo = await mkdtemp(path.join(os.tmpdir(), 'harness-status-config-'));
+  try {
+    await mkdir(path.join(tempRepo, '.harness'), { recursive: true });
+    await mkdir(path.join(tempRepo, 'work', 'changes', 'custom'), { recursive: true });
+    await writeFile(path.join(tempRepo, 'QUEUE.md'), '[ready] Custom queue item\nLayer: contract\nChange: work/changes/custom/\n', 'utf8');
+    await writeFile(path.join(tempRepo, 'work', 'changes', 'custom', 'tasks.md'), '- [x] Done\n- [ ] Pending\n', 'utf8');
+    await writeFile(
+      path.join(tempRepo, '.harness', 'harness-status.config.json'),
+      `${JSON.stringify({
+        schemaVersion: 1,
+        queue: 'QUEUE.md',
+        changes: 'work/changes',
+        statusMd: '.harness/custom-status.md',
+        statusJson: '.harness/custom-status.json',
+      }, null, 2)}\n`,
+      'utf8',
+    );
+
+    await execFileAsync(process.execPath, [scriptPath, '--repo', tempRepo, '--write-md', '--write-json']);
+    const markdown = await readFile(path.join(tempRepo, '.harness', 'custom-status.md'), 'utf8');
+    const json = JSON.parse(await readFile(path.join(tempRepo, '.harness', 'custom-status.json'), 'utf8'));
+
+    assert.match(markdown, /Custom queue item/);
+    assert.equal(json.config.queue, 'QUEUE.md');
+    assert.equal(json.config.changes, 'work/changes');
+    assert.equal(json.taskPackets[0].done, 1);
+    assert.equal(json.taskPackets[0].total, 2);
   } finally {
     await rm(tempRepo, { recursive: true, force: true });
   }
