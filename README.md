@@ -4,7 +4,7 @@
 
 ## 总览
 
-- 启用的非 system skills：22 个。
+- 启用的非 system skills：23 个。
 - 额外存在 `gh-fix-ci`，但入口文件是 `SKILL.disabled.md`，当前不作为启用 skill 自动触发。
 - 这些 skills 偏流程、边界、契约和治理，不是某个编程语言或框架的代码片段库。
 
@@ -46,6 +46,7 @@ Idea
 | 文档治理 | `document-gardener` | 审计和修正文档、ADR、队列、索引、检查注册与当前代码/验证状态之间的漂移。 | 是 |
 | 错误沉淀 | `agent-mistake-guard` | 把重复 agent 错误沉淀为短小 guardrail，必要时升级成机械检查。 | 是 |
 | 代码质量漂移 | `code-quality-drift-guard` | 检查孤儿脚本、孤儿 wrapper、命名漂移、重复 helper、文件膨胀和未引用候选。 | 是 |
+| 文档注释规范 | `doc-comment-policy` | 标准化类、接口、方法、函数、参数和返回值的语言原生 doc comment，避免“功能/入参/出参”模板破坏生成文档。 | 是 |
 | 文件化计划 | `planning-with-files` | 用 `task_plan.md`、`findings.md`、`progress.md` 做持久计划、进度记录和上下文恢复。 | 是 |
 | 执行提示词编写 | `execution-prompt-authoring` | 把已确认的计划、gate、队列项或 change packet 转成可审计的 controller、worker、subagent audit 和 integrator prompt pack。 | 是 |
 | Skill 透明度 | `skill-use-transparency` | 要求说明选择了哪个 skill、为什么触发、是否成功读取 `SKILL.md`、是否完整执行。 | 是 |
@@ -133,6 +134,7 @@ Idea
 - 完成后用 `review-next-governance` 更新队列、风险和下一步。
 - 长时间自治推进时，使用 `autonomous-ready-loop` 和 `harness-status-dashboard`。
 - 文档、队列、索引或治理规则漂移时，使用 `document-gardener`。
+- 写、审计或迁移 API/doc 生成链路上的代码注释时，使用 `doc-comment-policy`。
 - 已确认的多 worker、多角色或 change packet 需要落成可审计执行提示词时，使用 `execution-prompt-authoring`。
 
 ## 当前覆盖重点与缺口
@@ -144,6 +146,7 @@ Idea
 - 文档、队列、状态和错误沉淀。
 - 长任务自治执行和 checkpoint。
 - 代码质量漂移的轻量检查思路。
+- 代码文档注释的语言原生格式选择和防忘落地思路。
 
 当前明显较少的方向：
 
