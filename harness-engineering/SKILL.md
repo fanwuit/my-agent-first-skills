@@ -117,8 +117,14 @@ Do not use execution prompt authoring to approve product scope, skip readiness, 
 
 ## 层级链路
 
+完整顺序以 `references/layer-progression.md` 为唯一 source of truth：
+
 ```text
+Intake / Orientation
+ ->
 Idea
+ ->
+Fact Discovery, when material unknowns exist
  ->
 Brainstorming
  ->
@@ -130,6 +136,8 @@ ADR
  ->
 Contract
  ->
+Implementation Readiness
+ ->
 Implementation
  ->
 Verification
@@ -139,14 +147,19 @@ Review / Next
 
 ## 层级规则
 
+Implementation Entry Record is the mechanical credential for entering product implementation. `implementation-readiness-gate` confirms target readiness; `governed-implementation-entry` records the specific implementation slice before code/config changes begin.
+
 | 层级 | 目的 | 常见产物 | 退出条件 |
 |---|---|---|---|
+| Intake / Orientation | 捕获当前仓库、队列、入口规则和已知约束。 | 仓库上下文、现有队列或计划来源、约束清单。 | 当前工作入口和约束足够清楚。 |
 | Idea | 捕获原始意图，暂不急着定方案。 | 用户想法、issue、简短目标描述。 | 意图足够清楚，可以进入探索。 |
+| Fact Discovery | 把会影响后续层级的未知变成可复查事实。 | 样本、日志、fixture、probe、文档引用或显式未知。 | 事实足够支撑原层级继续推进。 |
 | Brainstorming | 围绕想法做发散和收敛，识别路径、风险、边界和非目标。 | 方案选项、假设、取舍、风险清单。 | 可以把方向总结成一个明确任务。 |
 | Brief | 固定做什么、为什么做、为谁做、当前不做什么。 | brief、任务说明、范围文档。 | 目标、非目标、成功标准和约束都已明确。 |
 | Architecture | 定义系统边界、职责、数据流和所有权。 | 架构文档、模块图、数据流说明。 | 组件和接口足够清楚，可以做关键决策。 |
 | ADR | 记录重要决策、理由、备选方案和后果。 | ADR 或 decision note。 | 决策、理由、影响和验证方式已写清楚。 |
 | Contract | 把行为变成可机械检查的契约。 | schema、API 形态、fixture、example、probe、check 脚本。 | 成功路径和关键失败路径都可以被验证。 |
+| Implementation Readiness | 确认 target-local 边界、契约、lint/test baseline、验证命令和本地规则。 | readiness checklist、target AGENTS、验证命令。 | 当前 target 允许进入最小实现切片。 |
 | Implementation | 只实现已有边界和契约支撑的内容。 | 代码、配置、迁移脚本。 | 实现满足契约，且没有扩大范围。 |
 | Verification | 用新鲜证据证明结论。 | 测试输出、检查输出、截图、trace、diff。 | 相关检查通过，或失败原因被如实记录。 |
 | Review / Next | 把本轮结果反馈回项目状态。 | NEXT scheduler、done archive、blocked/not-now 记录。 | 已完成事项、剩余风险和下一步动作都可被后续读取。 |
@@ -169,19 +182,19 @@ Review / Next
 新产品或复杂功能：
 
 ```text
-Idea -> Brainstorming -> Brief -> Architecture -> ADR -> Contract -> Implementation -> Verification -> Review / Next
+Intake / Orientation -> Idea -> Fact Discovery -> Brainstorming -> Brief -> Architecture -> ADR -> Contract -> Implementation Readiness -> Implementation -> Verification -> Review / Next
 ```
 
 PoC 或外部行为探索：
 
 ```text
-Idea -> Brainstorming -> Brief -> Contract probe/fixture/check -> 必要时补 ADR -> 有契约证据后才 Implementation
+Idea -> Fact Discovery -> Brainstorming -> Brief -> Contract probe/fixture/check -> 必要时补 ADR -> Implementation Readiness -> 有契约证据和准入证据后才 Implementation
 ```
 
 已有契约下的小 bugfix：
 
 ```text
-从 bug 报告形成 Brief -> Implementation -> Verification -> Review / Next
+从 bug 报告形成 Brief -> 确认已有 target readiness -> Implementation -> Verification -> Review / Next
 ```
 
 下一步不明确时：

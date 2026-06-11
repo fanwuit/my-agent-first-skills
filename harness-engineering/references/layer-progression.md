@@ -48,8 +48,8 @@ Fact Discovery is conditional and can interrupt any layer when an unknown would 
 | `architecture` | `architecture-boundary-design` | `implementation-detail-timing`, `observable-fact-discovery` | Boundaries, responsibilities, ownership, data flow, and ADR candidates. |
 | `adr` | `adr-writing` | `architecture-boundary-design`, `document-gardener` | Decision, rationale, alternatives, consequences, and validation approach. |
 | `contract` | `contract-first-development` | `contract-growth-control`, `observable-fact-discovery`, `find-docs` | Executable or reviewable contracts: schema, fixture, example, probe, API shape, check, or acceptance test. |
-| `readiness` | `implementation-readiness-gate` | `implementation-detail-timing`, `contract-growth-control` | Target-local boundaries, contracts, verification commands, AGENTS.md rules, and baseline checks are known. |
-| `implementation` | `implementation-readiness-gate` | `code-quality-drift-guard`, `agent-mistake-guard` | Code/config changes that stay inside approved boundaries and satisfy existing contracts. |
+| `readiness` | `implementation-readiness-gate` | `implementation-detail-timing`, `contract-growth-control`, `governed-implementation-entry` | Target-local boundaries, contracts, verification commands, AGENTS.md rules, baseline checks, and the Implementation Entry Record are known. |
+| `implementation` | `governed-implementation-entry` | `implementation-readiness-gate`, `code-quality-drift-guard`, `agent-mistake-guard` | Implementation Entry Record exists as the mechanical credential for code/config changes that stay inside approved boundaries and satisfy existing contracts. |
 | `verification` | `review-next-governance` | `code-quality-drift-guard`, `harness-status-dashboard` | Fresh evidence from tests, checks, probes, screenshots, traces, or explicit failure records. |
 | `review-next` | `review-next-governance` | `document-gardener`, `harness-status-dashboard`, `autonomous-ready-loop` | Done archive, scheduler ready queue, blocked items, not-now items, risks, and evidence are written to stable state. |
 
@@ -81,6 +81,8 @@ Execution modes do not create new harness layers. They decide how work at the cu
 
 `autonomous-ready-loop` is an execution mode for selecting and running ready layer work. `superpowers:subagent-driven-development` is an implementation execution mode used only after readiness and packetization.
 `execution-prompt-authoring` prepares the prompts and execution matrix for workers, subagent audits, controllers, and integrators; it does not create a new harness layer.
+
+Implementation Entry Record is the mechanical credential for entering product implementation. A readiness pass alone is not sufficient; the record must name target, scope, contract evidence, readiness state, packetization, verification, Review / Next state, and stop conditions before implementation changes begin.
 
 ## Transition Rules
 

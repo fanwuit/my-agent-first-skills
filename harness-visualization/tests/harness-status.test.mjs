@@ -138,6 +138,37 @@ test('project config can move queue, changes root, and status outputs', async ()
   }
 });
 
+test('write flags reject status outputs outside the target repo', async () => {
+  const tempRepo = await mkdtemp(path.join(os.tmpdir(), 'harness-status-contained-'));
+  try {
+    await assert.rejects(
+      execFileAsync(process.execPath, [
+        scriptPath,
+        '--repo',
+        tempRepo,
+        '--status-md',
+        '../outside-status.md',
+        '--write-md',
+      ]),
+      /Status output path must stay inside the target repo/,
+    );
+
+    await assert.rejects(
+      execFileAsync(process.execPath, [
+        scriptPath,
+        '--repo',
+        tempRepo,
+        '--status-json',
+        '../outside-status.json',
+        '--write-json',
+      ]),
+      /Status output path must stay inside the target repo/,
+    );
+  } finally {
+    await rm(tempRepo, { recursive: true, force: true });
+  }
+});
+
 test('legacy done queue items are preserved and warned for migration', async () => {
   const tempRepo = await mkdtemp(path.join(os.tmpdir(), 'harness-status-legacy-'));
   try {

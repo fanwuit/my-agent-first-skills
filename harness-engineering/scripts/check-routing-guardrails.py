@@ -49,6 +49,20 @@ REQUIRED_PHRASES = {
     ],
 }
 
+CANONICAL_LAYER_TERMS = [
+    "Intake / Orientation",
+    "Fact Discovery",
+    "Implementation Readiness",
+]
+
+OLD_LAYER_CHAIN_PATTERN = re.compile(
+    r"Idea\s*(?:->|\n\s*->\s*\n)\s*Brainstorming\s*(?:->|\n\s*->\s*\n)\s*Brief\s*"
+    r"(?:->|\n\s*->\s*\n)\s*Architecture\s*(?:->|\n\s*->\s*\n)\s*ADR\s*"
+    r"(?:->|\n\s*->\s*\n)\s*Contract\s*(?:->|\n\s*->\s*\n)\s*Implementation\s*"
+    r"(?:->|\n\s*->\s*\n)\s*Verification\s*(?:->|\n\s*->\s*\n)\s*Review / Next",
+    re.MULTILINE,
+)
+
 
 def read_text(path: pathlib.Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -99,11 +113,24 @@ def check_companion_risks(errors: list[str]) -> None:
             errors.append(f"{rel_path} contains uncontained risky routing phrase: {term}")
 
 
+def check_layer_progression_drift(errors: list[str]) -> None:
+    for path in [ROOT / "README.md", ROOT / "harness-engineering" / "SKILL.md"]:
+        text = read_text(path)
+        missing = [term for term in CANONICAL_LAYER_TERMS if term not in text]
+        if missing:
+            errors.append(f"{path.relative_to(ROOT)} missing canonical layer term(s): {', '.join(missing)}")
+        if OLD_LAYER_CHAIN_PATTERN.search(text) and "简化视图" not in text:
+            errors.append(
+                f"{path.relative_to(ROOT)} contains the old layer chain without marking it as a simplified view"
+            )
+
+
 def main() -> int:
     errors: list[str] = []
     check_preconditions(errors)
     check_required_phrases(errors)
     check_companion_risks(errors)
+    check_layer_progression_drift(errors)
 
     if errors:
         print("Routing guardrail check failed:")

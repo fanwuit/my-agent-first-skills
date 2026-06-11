@@ -80,6 +80,30 @@ CHECKPOINT
   refresh_harness_status "checkpoint write for round $round"
 }
 
+run_verification_preset() {
+  local preset="$1"
+  case "$preset" in
+    "")
+      return 0
+      ;;
+    routing-guardrails)
+      python harness-engineering/scripts/check-routing-guardrails.py
+      ;;
+    harness-visualization-tests)
+      node --test harness-visualization/tests/harness-status.test.mjs
+      ;;
+    all-local-checks)
+      run_verification_preset routing-guardrails
+      run_verification_preset harness-visualization-tests
+      node --test autonomous-ready-loop/tests/runner-verification-command.test.mjs
+      ;;
+    *)
+      echo "Unknown verification preset: $preset. Allowed presets: routing-guardrails, harness-visualization-tests, all-local-checks." >&2
+      return 2
+      ;;
+  esac
+}
+
 round=1
 while [ "$round" -le "$MAX_ROUNDS" ]; do
   if [ "$RUN_UNTIL_BOUNDARY" = "true" ]; then MODE="RunUntilBoundary"; else MODE="BoundedBatch"; fi
@@ -117,7 +141,7 @@ PROMPT
   if grep -Eq 'AUTONOMOUS_BLOCKED|AUTONOMOUS_BOUNDARY_REACHED|AUTONOMOUS_FAILED' <<< "$message"; then write_checkpoint "$round" "blocked" "worker emitted stop marker"; echo "Stopping after round $round due to marker."; exit 0; fi
   if ! grep -Eq 'AUTONOMOUS_READY_DONE|AUTONOMOUS_CONTEXT_HANDOFF' <<< "$message"; then write_checkpoint "$round" "failed" "worker did not emit a recognized continue marker"; echo "Worker did not emit a recognized continue marker." >&2; exit 1; fi
   if [ -n "$VERIFICATION_COMMAND" ]; then
-    if ! (cd "$REPO_PATH" && eval "$VERIFICATION_COMMAND"); then write_checkpoint "$round" "failed" "verification failed after round $round"; exit 1; fi
+    if ! (cd "$REPO_PATH" && run_verification_preset "$VERIFICATION_COMMAND"); then write_checkpoint "$round" "failed" "verification failed after round $round"; exit 1; fi
   fi
   refresh_harness_status "round $round completed"
   round=$((round + 1))

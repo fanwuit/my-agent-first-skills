@@ -29,18 +29,22 @@ companion workflow 只能作为能力插件。其 `MUST`、terminal state、`REQ
 `harness-engineering` 定义了主要工程层级：
 
 ```text
+Intake / Orientation
+ ->
 Idea
+ -> Fact Discovery, when material unknowns exist
  -> Brainstorming
  -> Brief
  -> Architecture
  -> ADR
  -> Contract
+ -> Implementation Readiness
  -> Implementation
  -> Verification
  -> Review / Next
 ```
 
-每一层都应该产出可持久化证据，例如 brief、架构摘要、ADR、schema、fixture、probe、check、测试输出或队列记录。重要结论不应只留在聊天里。
+完整顺序以 `harness-engineering/references/layer-progression.md` 为唯一 source of truth。每一层都应该产出可持久化证据，例如 brief、架构摘要、ADR、schema、fixture、probe、check、readiness evidence、测试输出或队列记录。重要结论不应只留在聊天里。
 
 ## 已包含的功能
 
@@ -54,13 +58,13 @@ Idea
 | 契约优先 | `contract-first-development` | 在实现前固定 schema、example、fixture、probe、check、失败路径和验证命令。 | 是 |
 | 契约膨胀控制 | `contract-growth-control` | 防止一直补 ADR/schema/check/readiness 而不进入最小实现切片。 | 是 |
 | 实现细节时机 | `implementation-detail-timing` | 判断类名、模块名、字段、表、迁移、依赖规则等应在哪个层级固定。 | 是 |
-| 实现入口 | `governed-implementation-entry` | 在写实现代码前记录 Implementation Entry Record，固定当前层级、target、scope、contract evidence、readiness、packetization、verification、Review / Next 和 stop conditions。 | 是 |
+| 实现入口 | `governed-implementation-entry` | 在写实现代码前记录 Implementation Entry Record；它是进入 product implementation 的 mechanical credential，固定当前层级、target、scope、contract evidence、readiness、packetization、verification、Review / Next 和 stop conditions。 | 是 |
 | 实现准入 | `implementation-readiness-gate` | 进入 target 实现前检查架构、ADR、contract、lint、测试 baseline、验证命令和本地 agent 规则。 | 是 |
 | 角色隔离 | `agent-role-isolation` | 分离 Planner、Contract/Test Writer、Implementer、Reviewer/Verifier，降低自测自收和范围膨胀风险。 | 是 |
 | 验证收口 | `review-next-governance` | 完成后更新 NEXT scheduler、done archive、backlog、blocked/not-now，记录验证证据、剩余风险和下一步。 | 是 |
 | 自治执行 | `autonomous-ready-loop` | 用外部 runner 反复启动短 `codex exec` worker，按 ready 队列推进并写 checkpoint。 | 是 |
-| 状态仪表 | `harness-status-dashboard` | 汇总 scheduler ready、done archive、target、contract、runner marker、验证新鲜度、漂移和是否需要人工输入；runner 启动、blocked/no-ready 和进度查询时应直接展示 CLI/对话紧凑状态面板。 | 是 |
-| 可视化状态 | `harness-visualization` | 从 NEXT scheduler、done archive、change packet、checkpoint 和 invocation log 生成只读 text/markdown dashboard、CLI 紧凑面板与 JSON 状态，展示 layer、ready、archive、task packet checklist、runner 和 verification。 | 是 |
+| 状态仪表 | `harness-status-dashboard` | 汇总 scheduler ready、done archive、target、contract、runner marker、验证新鲜度、漂移和是否需要人工输入；dashboard 负责解释/诊断，不默认复制 report 脚本。 | 是 |
+| 可视化状态 | `harness-visualization` | 默认实现：从 NEXT scheduler、done archive、change packet、checkpoint 和 invocation log 生成只读 text/markdown dashboard、CLI 紧凑面板与 JSON 状态，展示 layer、ready、archive、task packet checklist、runner 和 verification。 | 是 |
 | 文档治理 | `document-gardener` | 审计和修正文档、ADR、队列、索引、检查注册与当前代码/验证状态之间的漂移。 | 是 |
 | 错误沉淀 | `agent-mistake-guard` | 把重复 agent 错误沉淀为短小 guardrail，必要时升级成机械检查。 | 是 |
 | 代码质量漂移 | `code-quality-drift-guard` | 检查孤儿脚本、孤儿 wrapper、命名漂移、重复 helper、文件膨胀和未引用候选。 | 是 |
@@ -70,7 +74,7 @@ Idea
 | Skill 透明度 | `skill-use-transparency` | 要求说明选择了哪个 skill、为什么触发、是否成功读取 `SKILL.md`、是否完整执行。 | 是 |
 | 代码库导览 | `codebase-orientation` | 给陌生仓库快速梳理模块、入口、运行/测试命令和安全入门任务。 | 是 |
 | 调试交接 | `debugging-checklist` | 输出轻量调试 checklist，用于人类或初级开发者 handoff。 | 是 |
-| 外部技术文档 | `find-docs` | 用 Context7 查询非 OpenAI 技术文档和 API 示例；OpenAI/Codex 问题应走 system `openai-docs`。 | 是 |
+| 外部技术文档 | `find-docs` | 用 Context7 查询非 OpenAI 技术文档和 API 示例；OpenAI/Codex 问题依赖外部/system `openai-docs`，缺失时说明不可用并使用 official OpenAI docs fallback。 | 是 |
 | CI 修复 | `gh-fix-ci` | 使用 GitHub CLI 检查 PR checks 和 GitHub Actions 失败日志；当前入口为 `SKILL.disabled.md`。 | 否 |
 
 ## 重要资产
@@ -88,6 +92,9 @@ Idea
 - `scripts/check-complete.*`
 - `scripts/session-catchup.py`
 - `scripts/attest-plan.*`
+- `tests/powershell-parity.test.mjs`
+- `reference.md`
+- `examples.md`
 
 适合没有现成 `NEXT.md`、checkpoint 或项目队列系统的复杂多步任务。
 
@@ -98,8 +105,20 @@ Idea
 - `assets/run-autonomous-ready-loop.ps1`
 - `assets/run-autonomous-ready-loop.sh`
 - `references/runner-contract.md`
+- `tests/runner-verification-command.test.mjs`
 
 目标是让长任务由多个短 `codex exec` worker 通过仓库文件交接，而不是依赖单个长聊天上下文。runner 模板会在每轮完成或 checkpoint 写入后尝试调用通用 `harness-visualization` 刷新 `.harness/status.md` 和 `.harness/status.json`，并在 CLI/对话中展示紧凑状态面板；找不到脚本时只警告，避免把可视化依赖变成 worker 主流程阻断点。`NEXT.md` 应保持为 scheduler，只保留 `[ready]` 和必要时短暂 `[active]`；已完成历史进入 `docs/changes/archive/` 或项目 done 记录。
+
+runner 的 `VerificationCommand` 只能使用受控 preset 名称，例如 `routing-guardrails`、`harness-visualization-tests`、`all-local-checks`；不要把未审计 shell 字符串从 queue、config 或环境变量透传给 runner 执行。
+
+### `governed-implementation-entry`
+
+提供实现入口记录检查：
+
+- `scripts/check-entry-record.mjs`
+- `tests/check-entry-record.test.mjs`
+
+该脚本只检查 Implementation Entry Record 的必需字段是否存在且非空，并确认 readiness / packetization 字段包含允许值；它不证明 gate 内容正确。
 
 ### `implementation-readiness-gate`
 
@@ -121,6 +140,7 @@ Idea
 - `references/superpowers-routing.md`
 - `references/change-packet-model.md`
 - `scripts/check-routing-guardrails.py`
+- `tests/governance-docs.test.mjs`
 
 用于判断当前层级、下一步和与可选 companion skills 的关系。开发、规划、实现、调试、TDD、验证、review、队列、handoff、skill 更新、新项目、creative work 和继续/下一步请求必须优先选择并读取 `harness-engineering`。与 `superpowers:*` 等 companion workflow 重叠时，先由本地 skill 决定层级、边界、角色隔离、准入、契约、验证和 review/next 义务；companion workflow 只在治理规则明确后辅助执行。
 
@@ -129,6 +149,7 @@ Idea
 - 本地启用 skill 是否缺少 `Harness Precondition` 自守层。
 - `AGENTS.md`、`harness-engineering/SKILL.md`、`references/superpowers-routing.md` 是否保留 `superpowers:using-superpowers`、terminal state、`REQUIRED SUB-SKILL` 和 companion adapter 规则。
 - 本地 skill 是否出现未被 containment 解释的高风险 routing 触发词。
+- README 和 `harness-engineering/SKILL.md` 是否遗漏 canonical layer term，或保留未标注为简化视图的旧层级链路。
 
 规则不依赖具体安装目录，应使用当前会话暴露的 skill 名称和路径。
 
@@ -144,15 +165,28 @@ Idea
 - `tests/harness-status.test.mjs`
 - `tests/fixtures/sample-repo/`
 
-脚本默认只读扫描目标项目的 `NEXT.md`、`docs/changes/*/tasks.md`、`docs/changes/archive/*/tasks.md`、`.harness/run-checkpoint.md` 和 `.harness/codex-exec-invocations.ndjson`，输出终端文本；使用 `--format json` 可供 agent、TUI 或 Web UI 消费；使用 `--write-md` / `--write-json` 可写入目标项目 `.harness/status.md` 和 `.harness/status.json`，随后仍要在 CLI/对话展示当前紧凑状态面板。面板把 `Current ready` 作为调度大项；当 ready 指向 task packet、change packet 或等价任务包时，显示任务包路径、完成数/总数，以及 `## Task checklist` 中每个 `- [ ]` / `- [x]` 状态。使用 `--init` 可生成 `.harness/harness-status.config.json`，用于覆盖 queue、change root、archive root、checkpoint、invocation log 和 status 输出路径。它只负责可见性，不推进队列、不替代 gate 或 verification。旧 `NEXT.md` 中残留的 `[done]` 会以 `legacyDoneItems` 保留并产生迁移 warning，避免历史完成项丢失。
+脚本默认只读扫描目标项目的 `NEXT.md`、`docs/changes/*/tasks.md`、`docs/changes/archive/*/tasks.md`、`.harness/run-checkpoint.md` 和 `.harness/codex-exec-invocations.ndjson`，输出终端文本；使用 `--format json` 可供 agent、TUI 或 Web UI 消费；使用 `--write-md` / `--write-json` 可写入目标项目 `.harness/status.md` 和 `.harness/status.json`，写出路径必须保留在目标 repo 内，随后仍要在 CLI/对话展示当前紧凑状态面板。面板把 `Current ready` 作为调度大项；当 ready 指向 task packet、change packet 或等价任务包时，显示任务包路径、完成数/总数，以及 `## Task checklist` 中每个 `- [ ]` / `- [x]` 状态。使用 `--init` 可生成 `.harness/harness-status.config.json`，用于覆盖 queue、change root、archive root、checkpoint、invocation log 和 status 输出路径。它只负责可见性，不推进队列、不替代 gate 或 verification。旧 `NEXT.md` 中残留的 `[done]` 会以 `legacyDoneItems` 保留并产生迁移 warning，避免历史完成项丢失。
 
 提示词入口支持 `$harness-visualization init`：初始化目标项目 status config，刷新 `.harness/status.md` / `.harness/status.json`，并报告缺失状态源。
+
+### 根目录检查入口
+
+提供统一 npm scripts：
+
+- `npm test`
+- `npm run check:routing`
+- `npm run check:entry-record`
+- `npm run check:all`
+
+`check:all` 串联 routing guardrail、Node test suites 和本轮 Implementation Entry Record 检查。仓库仍不引入 npm 依赖，脚本只使用 Node.js、Python 和 PowerShell。
 
 ## 未启用但存在
 
 ### `gh-fix-ci`
 
 目录存在，但使用 `SKILL.disabled.md`，所以当前不是启用 skill。
+
+禁用 skill 可以保留 `agents/openai.yaml`、assets、scripts 和 LICENSE 作为待启用资产；任何 discovery 或 marketplace 同步逻辑必须先确认入口文件是 `SKILL.md`，不能只因为 manifest 存在就把 disabled skill 当成已启用。
 
 它的说明显示目标能力是：
 
@@ -175,6 +209,7 @@ Idea
 - 进入产品实现前，按 target 使用 `implementation-readiness-gate`。
 - 完成后用 `review-next-governance` 更新 NEXT scheduler、done archive、风险和下一步；不要把已完成历史长期留在 `NEXT.md`。
 - 长时间自治推进时，使用 `autonomous-ready-loop`、`harness-status-dashboard` 和 `harness-visualization`，分别负责执行循环、状态判断和可读/JSON 仪表输出；业务项目只暴露标准状态源，包括 scheduler queue、done archive、checkpoint、invocation log 和 change packet，通用 runner/status 脚本负责刷新可视化状态。
+- 状态相关工作默认由 `harness-visualization/scripts/harness-status.mjs` 提供 visualization 默认实现；`harness-status-dashboard` 只负责 dashboard 解释/诊断、human-needed 判断和展示要求。只有状态源不标准时才补 adapter 或 `.harness/harness-status.config.json`。
 - 文档、队列、索引或治理规则漂移时，使用 `document-gardener`。
 - 写、审计或迁移 API/doc 生成链路上的代码注释时，使用 `doc-comment-policy`。
 - 已确认的多 worker、多角色或 change packet 需要落成可审计执行提示词时，使用 `execution-prompt-authoring`。

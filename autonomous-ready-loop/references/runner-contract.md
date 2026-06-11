@@ -91,6 +91,18 @@ runner 模板应在以下时机自动调用通用 `harness-visualization/scripts
 
 业务项目不应复制可视化逻辑。业务项目只负责维护 scheduler queue、done archive、change packet、checkpoint、invocation log 和 verification 事实。
 
+## Verification preset 要求
+
+runner 模板只能执行受控 verification preset，不应把 queue 文本、config 文本或环境变量中的任意 shell 字符串直接传给 `eval`、`Invoke-Expression` 或等价执行入口。
+
+当前通用预设：
+
+- `routing-guardrails`：运行 `python harness-engineering/scripts/check-routing-guardrails.py`。
+- `harness-visualization-tests`：运行 `node --test harness-visualization/tests/harness-status.test.mjs`。
+- `all-local-checks`：串联 routing guardrail、harness visualization tests 和 autonomous runner 静态检查。
+
+如果项目需要更多验证命令，应先把它们登记成新的 runner preset，并在 runner asset 和对应测试中同步更新。`VerificationCommand` 只能作为 preset 名称使用，不能作为未审计命令行透传。
+
 ## Worker Prompt 要求
 
 项目专用 worker prompt 应包含以下约束：

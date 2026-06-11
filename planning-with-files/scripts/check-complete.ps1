@@ -3,8 +3,22 @@
 # Used by external runners to report task completion status
 
 param(
-    [string]$PlanFile = "task_plan.md"
+    [string]$PlanFile = ""
 )
+
+if (-not $PlanFile) {
+    $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $resolver = Join-Path $scriptDir "resolve-plan-dir.ps1"
+    $planDir = ""
+    if (Test-Path $resolver -PathType Leaf) {
+        $planDir = (& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $resolver 2>$null | Select-Object -First 1)
+    }
+    if ($planDir -and (Test-Path (Join-Path $planDir "task_plan.md") -PathType Leaf)) {
+        $PlanFile = Join-Path $planDir "task_plan.md"
+    } else {
+        $PlanFile = "task_plan.md"
+    }
+}
 
 if (-not (Test-Path $PlanFile)) {
     Write-Host '[planning-with-files] No task_plan.md found -- no active planning session.'

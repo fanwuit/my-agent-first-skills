@@ -41,10 +41,11 @@ description: Use when a project needs a status dashboard, drift report, autonomo
 
 1. 找项目队列入口，常见是 `NEXT.md`、issue queue 或 TODO 文件；`NEXT.md` 应只作为 scheduler，不作为 done 历史库。
 2. 找持久化执行记录，常见是 `.harness/run-checkpoint.md`、runner invocation log、verification record。
-3. 新增一个 report 脚本，优先输出文本摘要；需要机器消费时再加 JSON。
-4. 报告脚本不要替代检查脚本。它负责可见性，检查脚本负责拦截。
-5. 把 report 入口登记到 README 或项目工具说明。
-6. 如果 report 发现 stale verification、marker failed、ready 缺失或 drift，应明确标红/失败字段，但不要静默改队列。
+3. Default implementation: call `harness-visualization/scripts/harness-status.mjs` with the target repo and the standard queue/checkpoint/status arguments.
+4. 只有目标项目状态源不标准时，才新增 adapter 或 `.harness/harness-status.config.json`；不要为每个项目复制可视化解析逻辑。
+5. 报告脚本不要替代检查脚本。dashboard 负责解释/诊断和展示，visualization 负责默认实现与 Markdown/JSON contract，检查脚本负责拦截。
+6. 把 status 入口登记到 README 或项目工具说明。
+7. 如果 report 发现 stale verification、marker failed、ready 缺失或 drift，应明确标红/失败字段，但不要静默改队列。
 
 ## 禁止
 

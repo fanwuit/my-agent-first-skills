@@ -66,6 +66,31 @@ function Write-RunCheckpoint {
   Invoke-HarnessStatusRefresh -Reason "checkpoint write for round $Round"
 }
 
+function Invoke-VerificationPreset {
+  param([string]$Preset)
+  if (-not $Preset) { return }
+
+  switch ($Preset) {
+    'routing-guardrails' {
+      & python 'harness-engineering/scripts/check-routing-guardrails.py'
+      if ($LASTEXITCODE -ne 0) { throw "Verification preset failed: $Preset" }
+    }
+    'harness-visualization-tests' {
+      & node --test 'harness-visualization/tests/harness-status.test.mjs'
+      if ($LASTEXITCODE -ne 0) { throw "Verification preset failed: $Preset" }
+    }
+    'all-local-checks' {
+      Invoke-VerificationPreset -Preset 'routing-guardrails'
+      Invoke-VerificationPreset -Preset 'harness-visualization-tests'
+      & node --test 'autonomous-ready-loop/tests/runner-verification-command.test.mjs'
+      if ($LASTEXITCODE -ne 0) { throw "Verification preset failed: autonomous-ready-loop-tests" }
+    }
+    default {
+      throw "Unknown verification preset: $Preset. Allowed presets: routing-guardrails, harness-visualization-tests, all-local-checks."
+    }
+  }
+}
+
 $statusScriptPath = Resolve-HarnessStatusScript -ExplicitPath $HarnessStatusScript
 
 for ($round = 1; $round -le $MaxRounds; $round++) {
@@ -125,11 +150,10 @@ for ($round = 1; $round -le $MaxRounds; $round++) {
   if ($VerificationCommand) {
     Push-Location $repoPath
     try {
-      Invoke-Expression $VerificationCommand
-      if ($LASTEXITCODE -ne 0) {
-        Write-RunCheckpoint -Path $checkpointPath -QueueFile $QueueFile -Round $round -Result 'failed' -StopReason "verification failed after round $round"
-        throw "Verification failed after round $round."
-      }
+      Invoke-VerificationPreset -Preset $VerificationCommand
+    } catch {
+      Write-RunCheckpoint -Path $checkpointPath -QueueFile $QueueFile -Round $round -Result 'failed' -StopReason "verification failed after round $round"
+      throw "Verification failed after round $round. $($_.Exception.Message)"
     } finally { Pop-Location }
   }
   Invoke-HarnessStatusRefresh -Reason "round $round completed"

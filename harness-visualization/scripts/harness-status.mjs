@@ -298,6 +298,14 @@ function isPathInside(childPath, parentPath) {
   return relative === '' || Boolean(relative && !relative.startsWith('..') && !path.isAbsolute(relative));
 }
 
+function resolveRepoContainedPath(repoPath, outputPath) {
+  const absolute = path.resolve(repoPath, outputPath);
+  if (!isPathInside(absolute, repoPath)) {
+    throw new Error(`Status output path must stay inside the target repo: ${outputPath}`);
+  }
+  return absolute;
+}
+
 async function discoverChangeDirs(repoPath, schedulerItems, changesRootPath, archiveRootPath) {
   const found = new Map();
   const archiveRoot = path.resolve(repoPath, archiveRootPath);
@@ -738,12 +746,12 @@ async function main() {
 
   if (options.writeMd || options.writeJson) {
     if (options.writeMd) {
-      const statusMdPath = path.resolve(status.repo, status.config.statusMd);
+      const statusMdPath = resolveRepoContainedPath(status.repo, status.config.statusMd);
       await mkdir(path.dirname(statusMdPath), { recursive: true });
       await writeFile(statusMdPath, markdown, 'utf8');
     }
     if (options.writeJson) {
-      const statusJsonPath = path.resolve(status.repo, status.config.statusJson);
+      const statusJsonPath = resolveRepoContainedPath(status.repo, status.config.statusJson);
       await mkdir(path.dirname(statusJsonPath), { recursive: true });
       await writeFile(statusJsonPath, `${JSON.stringify(status, null, 2)}\n`, 'utf8');
     }
