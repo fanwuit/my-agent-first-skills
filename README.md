@@ -131,6 +131,7 @@ runner 的 `VerificationCommand` 只能使用受控 preset 名称，例如 `rout
 - `references/shared-package-target.md`
 
 用于进入具体 target 实现前确认架构、契约、lint、测试、验证命令和本地规则是否齐备。
+target 文档中的 `<backend-app>`、`<frontend-app>`、`<worker-runtime>`、`<shared-package>` 等只是通用占位符；实际项目应按自己的 workspace、package、service 或 app 路径识别 target，不把示例路径当成默认要求。
 
 ### `harness-engineering`
 
@@ -223,6 +224,7 @@ change packet 模板用于初始化原生 `docs/changes/<id>/`，包含 `proposa
 - 长时间自治推进时，使用 `autonomous-ready-loop`、`harness-status-dashboard` 和 `harness-visualization`，分别负责执行循环、状态判断和可读/JSON 仪表输出；业务项目只暴露标准状态源，包括 scheduler queue、done archive、checkpoint、invocation log 和 change packet，通用 runner/status 脚本负责刷新可视化状态。
 - 状态相关工作默认由 `harness-visualization/scripts/harness-status.mjs` 提供 visualization 默认实现；`harness-status-dashboard` 只负责 dashboard 解释/诊断、human-needed 判断和展示要求。只有状态源不标准时才补 adapter 或 `.harness/harness-status.config.json`。
 - 文档、队列、索引或治理规则漂移时，使用 `document-gardener`。
+- skill inventory 或 discovery metadata 漂移时也使用 `document-gardener`；`agents/openai.yaml` 等 manifest 只在目标仓库实际存在时才作为检查对象。
 - 写、审计或迁移 API/doc 生成链路上的代码注释时，使用 `doc-comment-policy`。
 - 已确认的多 worker、多角色或 change packet 需要落成可审计执行提示词时，使用 `execution-prompt-authoring`。
 

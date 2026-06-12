@@ -1,6 +1,6 @@
 # Shared Package Target Gate
 
-用于会被多个 app、service、runtime 或 tool 消费的共享包。例如：`packages/worker-contracts`、`packages/preview-contracts`、`packages/dev-tools`、`packages/shared-types`、`packages/api-client`、`packages/test-fixtures`。
+用于会被多个 app、service、runtime 或 tool 消费的共享包。例如：`<contract-package>`、`<shared-types-package>`、`<api-client-package>`、`<test-fixtures-package>`，或项目自己的 shared package 路径。
 
 ## 范围模板
 

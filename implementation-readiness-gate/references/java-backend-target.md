@@ -1,6 +1,6 @@
 # Java Backend Target Gate
 
-用于 Java 后端目标，例如 `apps/platform-api`。
+用于 Java 后端目标，例如 `<backend-app>`、`<api-service>` 或项目自己的后端 target 路径。
 
 ## 必需基线
 

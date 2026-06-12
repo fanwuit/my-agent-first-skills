@@ -29,11 +29,13 @@ description: Use before entering implementation or writing product code, especia
 
 先识别 implementation target。常见例子：
 
-- Java backend：`apps/platform-api`
-- Vue/Web frontend：`apps/web-preview`、`apps/web-designer`
-- Worker/runtime：`apps/external-worker`、`apps/designer-orchestrator`
-- NX plugin：`apps/nx-plugin`
-- Shared package：`packages/*`
+- Java backend：`<backend-app>`
+- Web frontend：`<frontend-app>`
+- Worker/runtime：`<worker-runtime>`、`<external-process-host>`
+- Plugin/extension：`<plugin-or-extension>`
+- Shared package：`<shared-package>`
+
+这些是 target 类型占位符，不是默认目录要求。项目已有自己的目录、workspace、package 或 service 命名时，按项目本地规则识别 target。
 
 每个 target 都需要自己的 readiness evidence。根目录的 `docs/linting.md` 或根级测试命令有价值，但不能替代 target-local lint、test、verification command 和 local coding rules。
 

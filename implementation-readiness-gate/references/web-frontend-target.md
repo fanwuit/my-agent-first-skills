@@ -1,6 +1,6 @@
 # Web Frontend Target Gate
 
-用于 Web/frontend 目标，例如 `apps/web-preview` 或 `apps/web-designer`。
+用于 Web/frontend 目标，例如 `<frontend-app>`、`<web-client>` 或项目自己的前端 target 路径。
 
 ## 必需基线
 
