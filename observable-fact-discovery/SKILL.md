@@ -48,6 +48,10 @@ description: Use when a concrete unknown about existing behavior, external capab
 
 不要先猜修；如果事实不足，停在 Fact Discovery 或标记 blocked。
 
+## Monitor Evidence
+
+当 monitoring、status JSON、runner marker、日志、错误或指标暴露未知行为时，把它们当作 fact discovery 输入。Monitor 只记录可观察事实和下一层候选，不把绿色仪表当作 product-ready，也不静默修改队列。共享边界见 `harness-engineering/references/local-qa-release-monitor-retro.md`。
+
 ## Fact Record 模板
 
 ```markdown

@@ -8,6 +8,7 @@
 - 这些 skills 偏流程、边界、契约和治理，不是某个编程语言或框架的代码片段库。
 - change packet 只吸收 OpenSpec-like artifact discipline：标准 proposal/design/tasks/contracts/verification 资产形态、contract delta 表达和机械检查；OpenSpec 不是 dependency、入口或兼容目标。
 - Superpowers 只吸收工程动作：brainstorming、TDD、systematic debugging、completion evidence、review feedback、planning/execution checkpoints、parallel agents、worktree/branch finish discipline；不吸收流程主权、默认 artifact 路径或自动分支动作。
+- QA / Release / Monitor / Retro 只作为本地 owner skill 的工程纪律补充：提供真实运行、发布准入、观察和复盘证据，不引入外部 lifecycle adapter 或自动 ship / deploy / commit / push。
 
 ## 核心链路
 
@@ -148,16 +149,20 @@ target 文档中的 `<backend-app>`、`<frontend-app>`、`<worker-runtime>`、`<
 - `references/superpowers-routing.md`
 - `references/change-packet-model.md`
 - `references/planning-carrier-decision.md`
+- `references/check-frequency.md`
+- `references/local-qa-release-monitor-retro.md`
 - `templates/change-packet/proposal.md`
 - `templates/change-packet/design.md`
 - `templates/change-packet/tasks.md`
 - `templates/change-packet/contracts.md`
 - `templates/change-packet/verification.md`
 - `scripts/check-routing-guardrails.py`
+- `scripts/check-skill-inventory.mjs`
 - `scripts/init-change-packet.mjs`
 - `scripts/check-change-packet.mjs`
 - `tests/governance-docs.test.mjs`
 - `tests/change-packet.test.mjs`
+- `tests/skill-inventory.test.mjs`
 
 用于判断当前层级、下一步和与可选 companion skills 的关系。开发、规划、实现、调试、TDD、验证、review、队列、handoff、skill 更新、新项目、creative work 和继续/下一步请求必须优先选择并读取 `harness-engineering`。与 `superpowers:*` 等 companion workflow 重叠时，先由本地 skill 决定层级、边界、角色隔离、准入、契约、验证和 review/next 义务；companion workflow 只在治理规则明确后辅助执行。
 
@@ -173,6 +178,8 @@ change packet 模板用于初始化原生 `docs/changes/<id>/`，包含 `proposa
 - README 和 `harness-engineering/SKILL.md` 是否遗漏 canonical layer term，或保留未标注为简化视图的旧层级链路。
 
 规则不依赖具体安装目录，应使用当前会话暴露的 skill 名称和路径。
+
+`scripts/check-skill-inventory.mjs` 校验 README 启用 skill 数量、skill 表和重要资产登记是否覆盖当前 `*/SKILL.md`、scripts、templates、assets、references 和 tests，避免新增或删除治理资产后只靠人工同步。
 
 `scripts/init-change-packet.mjs` 用本项目模板初始化 `docs/changes/<id>/`；`scripts/check-change-packet.mjs` 校验 packet 必需文件、`tasks.md` checkbox、`contracts.md` contract artifact 或 blocked 原因、`verification.md` 验证证据、允许的 status 值，以及 archive packet 是否把稳定结论回链到 ADR、README、contract、verification、queue 或项目索引。它不执行 apply/archive，也不批准 implementation。
 
@@ -192,16 +199,19 @@ change packet 模板用于初始化原生 `docs/changes/<id>/`，包含 `proposa
 - `review-next-governance/references/completion-review-branch.md`：completion evidence、review feedback、requesting review 和 branch finish 边界。
 - `harness-engineering/references/planning-carrier-decision.md`：project queue、planning files、change packet、execution prompt pack、task packet 载体决策。
 - `execution-prompt-authoring/references/parallel-execution-matrix.md`：parallel agents、Integrator 和 worktree guidance。
+- `harness-engineering/references/check-frequency.md`：targeted checks、`check:all` 收口时机和 recurring job 降频边界。
+- `harness-engineering/references/local-qa-release-monitor-retro.md`：QA / Release / Monitor / Retro 的本地 owner、稳定证据和 forbidden transition。
 
 ### `harness-visualization`
 
 提供通用 harness 状态可视化脚本：
 
 - `scripts/harness-status.mjs`
+- `references/status-contract.md`
 - `tests/harness-status.test.mjs`
 - `tests/fixtures/sample-repo/`
 
-脚本默认只读扫描目标项目的 `NEXT.md`、`docs/changes/*/tasks.md`、`docs/changes/archive/*/tasks.md`、`.harness/run-checkpoint.md` 和 `.harness/codex-exec-invocations.ndjson`，输出终端文本；使用 `--format json` 可供 agent、TUI 或 Web UI 消费；使用 `--write-md` / `--write-json` 可写入目标项目 `.harness/status.md` 和 `.harness/status.json`，写出路径必须保留在目标 repo 内，随后仍要在 CLI/对话展示当前紧凑状态面板。面板把 `Current ready` 作为调度大项；当 ready 指向 task packet、change packet 或等价任务包时，显示任务包路径、完成数/总数，以及 `## Task checklist` 中每个 `- [ ]` / `- [x]` 状态。使用 `--init` 可生成 `.harness/harness-status.config.json`，用于覆盖 queue、change root、archive root、checkpoint、invocation log 和 status 输出路径。它只负责可见性，不推进队列、不替代 gate 或 verification。旧 `NEXT.md` 中残留的 `[done]` 会以 `legacyDoneItems` 保留并产生迁移 warning，避免历史完成项丢失。
+脚本默认只读扫描目标项目的 `NEXT.md`、`docs/changes/*/tasks.md`、`docs/changes/archive/*/tasks.md`、`.harness/run-checkpoint.md` 和 `.harness/codex-exec-invocations.ndjson`，输出终端文本；使用 `--format json` 可供 agent、TUI 或 Web UI 消费；使用 `--write-md` / `--write-json` 可写入目标项目 `.harness/status.md` 和 `.harness/status.json`，写出路径必须保留在目标 repo 内，随后仍要在 CLI/对话展示当前紧凑状态面板。紧凑面板和 task packet checklist 展示规则以 `references/status-contract.md` 为唯一 source of truth。使用 `--init` 可生成 `.harness/harness-status.config.json`，用于覆盖 queue、change root、archive root、checkpoint、invocation log 和 status 输出路径。它只负责可见性，不推进队列、不替代 gate 或 verification。旧 `NEXT.md` 中残留的 `[done]` 会以 `legacyDoneItems` 保留并产生迁移 warning，避免历史完成项丢失。
 
 提示词入口支持 `$harness-visualization init`：初始化目标项目 status config，刷新 `.harness/status.md` / `.harness/status.json`，并报告缺失状态源。
 
@@ -220,11 +230,14 @@ change packet 模板用于初始化原生 `docs/changes/<id>/`，包含 `proposa
 - `npm run check:routing`
 - `npm run check:packets`
 - `npm run check:entry-record`
+- `npm run check:inventory`
 - `npm run check:fast`
 - `npm run check:governance`
 - `npm run check:all`
 
-`check:fast` 用于日常小改，串联 routing guardrail 和关键治理测试；`check:governance` 用于入口、harness、entry、planning 等治理规则改动；`check:all` 串联 routing guardrail、全部 Node test suites、change packet 检查和稳定 Implementation Entry Record fixture 检查。仓库仍不引入 npm 依赖，脚本只使用 Node.js、Python 和 PowerShell。
+迭代中优先跑 targeted checks；阶段收口、commit / PR / push / release 前，修改验证链路后，或影响范围不确定时再跑 `check:all`。详细频率见 `harness-engineering/references/check-frequency.md`。
+
+`check:fast` 用于日常小改，串联 routing guardrail 和关键治理测试；`check:governance` 用于入口、harness、entry、planning 等治理规则改动；`check:inventory` 校验 README skill 表、启用 skill 集合和重要资产登记；`check:entry-record` 自动发现并检查当前整改记录和稳定 fixture；`check:all` 串联 routing guardrail、全部 Node test suites、change packet 检查、skill inventory 检查和 Implementation Entry Record 检查。仓库仍不引入 npm 依赖，脚本只使用 Node.js、Python 和 PowerShell。
 
 ## 使用建议
 
@@ -236,11 +249,11 @@ change packet 模板用于初始化原生 `docs/changes/<id>/`，包含 `proposa
 - 涉及多个组件或边界时，进入 `architecture-boundary-design`，必要时再写 `adr-writing`。
 - 新 API、schema、CLI、fixture、外部行为或失败路径，应先用 `contract-first-development`。
 - 进入产品实现前，按 target 使用 `implementation-readiness-gate`。
-- 完成后用 `review-next-governance` 更新 NEXT scheduler、done archive、风险和下一步；不要把已完成历史长期留在 `NEXT.md`。
+- 完成后用 `review-next-governance` 更新 NEXT scheduler、done archive、风险和下一步；不要把已完成历史长期留在 `NEXT.md`。完成前必须有新鲜 verification evidence；小型本地改动可在最终回复记录，只有跨会话、状态变更、PR / release、验证机制改动、失败 / skipped / residual risk 等需要未来复用的场景，才写 stable verification record。
 - 长时间自治推进时，使用 `autonomous-ready-loop`、`harness-status-dashboard` 和 `harness-visualization`，分别负责执行循环、状态判断和可读/JSON 仪表输出；业务项目只暴露标准状态源，包括 scheduler queue、done archive、checkpoint、invocation log 和 change packet，通用 runner/status 脚本负责刷新可视化状态。
 - 状态相关工作默认由 `harness-visualization/scripts/harness-status.mjs` 提供 visualization 默认实现；`harness-status-dashboard` 只负责 dashboard 解释/诊断、human-needed 判断和展示要求。只有状态源不标准时才补 adapter 或 `.harness/harness-status.config.json`。
-- 文档、队列、索引或治理规则漂移时，使用 `document-gardener`。
-- skill inventory 或 discovery metadata 漂移时也使用 `document-gardener`；`agents/openai.yaml` 等 manifest 只在目标仓库实际存在时才作为检查对象。
+- 文档、队列、索引或治理规则漂移时，使用 `document-gardener`；它不作为每次实现完成的默认 gate。
+- skill inventory 或 discovery metadata 漂移时也使用 `document-gardener`；`agents/openai.yaml` 等 manifest 只在目标仓库实际存在时才作为检查对象。周期性 Windows / CI 文档园丁默认应为 scan-only；repair mode 需要低频或人工批准，且不应每天自动触发 `check:all`。
 - 写、审计或迁移 API/doc 生成链路上的代码注释时，使用 `doc-comment-policy`。
 - 已确认的多 worker、多角色或 change packet 需要落成可审计执行提示词时，使用 `execution-prompt-authoring`。
 

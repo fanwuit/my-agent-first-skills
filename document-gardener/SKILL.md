@@ -15,6 +15,8 @@ Keep repository knowledge legible for future agents. Treat versioned documents, 
 
 ## Trigger Scan
 
+Use this workflow when durable documentation, indexes, queues, inventory, or check registration may have drifted. Do not invoke it as a default gate for every implementation closeout; use the owning skill and targeted verification first.
+
 Use this workflow when any of these appear:
 
 - Entry documents disagree about current phase, scope, architecture, or status.
@@ -24,6 +26,8 @@ Use this workflow when any of these appear:
 - ADRs, briefs, readiness gates, local agent rules, and queue files conflict.
 - A queue says work is done, ready, blocked, or not-now in a way that no stable artifact supports.
 - Documentation still repeats a conclusion that later code, checks, ADRs, or fixtures have disproved.
+
+Do not use this skill merely because a targeted check passed, a trivial-safe-change finished, or a final reply needs verification evidence. Those cases can close out in chat unless durable docs or queues changed.
 
 ## Workflow
 
@@ -56,12 +60,15 @@ Document gardening must not:
 
 This skill defines the workflow; scheduling belongs to the repository or CI environment.
 
-A recurring document-gardener runner should:
+A recurring document-gardener runner should default to scan-only:
 
 - Start a fresh agent session, for example with `codex exec`, on a daily or weekly cadence.
-- Prompt the worker to use `$document-gardener`, read repository-local instructions, and modify only documentation/governance scope.
+- Prompt the worker to use `$document-gardener`, read repository-local instructions, and inspect only documentation/governance drift unless repair mode is explicitly enabled.
 - Record each run in a stable log such as `.harness/document-gardener-runs.jsonl`.
-- Open a small PR or commit only when drift is found and checks pass.
+- In scan-only mode, report findings and suggested targeted checks without editing files or running `check:all` by default.
+- Enter repair mode only on a lower-frequency schedule or after human/project approval; repair mode may modify documentation/governance scope and should run targeted checks first.
+- Run `npm run check:all` only for repair closeout, phase closeout, commit/PR/release readiness, verification-chain changes, or unclear impact scope.
+- Open a small PR or commit only when drift is found, repair mode is authorized, and checks pass.
 - Stop and report blocked status when the fix would require product implementation, external credentials, or human judgment.
 
 ## Output

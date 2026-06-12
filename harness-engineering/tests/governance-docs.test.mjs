@@ -58,3 +58,36 @@ test('find-docs README documents external openai-docs dependency and fallback', 
   assert.match(readme, /system `openai-docs`/);
   assert.match(readme, /official OpenAI docs fallback/i);
 });
+
+test('README and governance docs preserve check frequency boundaries', async () => {
+  const readme = await readRepoText('README.md');
+  const checkFrequency = await readRepoText('harness-engineering/references/check-frequency.md');
+  const documentGardener = await readRepoText('document-gardener/SKILL.md');
+  const completion = await readRepoText('review-next-governance/references/completion-review-branch.md');
+
+  assert.match(readme, /迭代中优先跑 targeted checks/);
+  assert.match(readme, /阶段收口.*check:all/s);
+  assert.match(checkFrequency, /During iteration: run targeted checks/i);
+  assert.match(documentGardener, /scan-only/i);
+  assert.match(completion, /不等于每次都要写持久化 verification record/);
+});
+
+test('status display contract is centralized in harness visualization reference', async () => {
+  const dashboard = await readRepoText('harness-status-dashboard/SKILL.md');
+  const visualization = await readRepoText('harness-visualization/SKILL.md');
+  const statusContract = await readRepoText('harness-visualization/references/status-contract.md');
+
+  assert.match(dashboard, /harness-visualization\/references\/status-contract\.md/);
+  assert.match(visualization, /references\/status-contract\.md/);
+  assert.match(statusContract, /Task Packet Checklist Rule/);
+  assert.match(statusContract, /Current ready.*scheduling item/s);
+});
+
+test('QA Release Monitor Retro practices remain local-owner evidence only', async () => {
+  const readme = await readRepoText('README.md');
+  const lifecycle = await readRepoText('harness-engineering/references/local-qa-release-monitor-retro.md');
+
+  assert.match(readme, /不引入外部 lifecycle adapter/);
+  assert.match(lifecycle, /do not approve new product scope/i);
+  assert.match(lifecycle, /Do not tag, publish, deploy, push, open PR, or create commits/i);
+});

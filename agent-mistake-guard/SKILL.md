@@ -63,6 +63,10 @@ Guardrail:
    - 运行项目匹配的文档地图、结构、lint、队列或治理检查。
    - 如果项目没有对应检查，说明验证仅限文件审阅。
 
+## Retro Absorption
+
+Retro 只把重复 agent 错误、稳定经验和可机械化检查候选写回本地资产；不要创建长篇失败日志、宽泛流程重写或新的默认 gate。文档漂移交给 `document-gardener`，稳定状态更新交给 `review-next-governance`。共享边界见 `harness-engineering/references/local-qa-release-monitor-retro.md`。
+
 ## 条目选择
 
 优先记录已经发生过，或当前项目高度可能发生的错误：

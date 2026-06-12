@@ -46,20 +46,7 @@ node harness-visualization/scripts/harness-status.mjs --repo <project> --write-m
 
 ## Status Contract
 
-Dashboard 必须至少显示：
-
-- Current layer：从 scheduler queue 中 `[active]` / `[ready]` item 的 `Layer:` 推断。
-- Scheduler queue：`NEXT.md` 中当前可调度的 `[ready]` 和短暂 `[active]` 数量与条目。
-- Legacy queue records：旧队列里残留的 `[done]`、`[blocked]`、not-now 或其他非 scheduler 状态，必须保留显示并给出迁移 warning，不能静默丢弃。
-- Task packets：活跃 change packet `tasks.md` checkbox 完成度，不把 archive 当作当前 packet。
-- Done archive：`docs/changes/archive/<YYYY-MM-DD>-<change-id>/tasks.md` 完成历史摘要。
-- Runner：最近 marker、轮次、退出码、checkpoint stop reason。
-- Verification：最近验证摘要，以及缺失/失败/stale warning。
-- Warnings：缺失 queue、缺失 task packet、无 checkpoint、无法解析的 invocation log。
-
-CLI/对话紧凑面板必须至少包含 Current layer、Current ready、ready queue 数量、runner marker、runner round、checkpoint result、verification stale/failed、human-needed blocker、status 文件路径。若 blocker 是端口占用，显示端口、PID、进程名和命令行。
-
-当 Current ready 指向 task packet、change packet 或等价任务包时，面板必须把 ready 作为大项，并读取任务包 checklist：显示任务包路径、完成数/总数，以及每条 `- [ ]` / `- [x]`。任务包没有 checklist 时要明确 warning，不要把 ready 级别状态误当作 task 级进度。
+共享展示 contract 见 `references/status-contract.md`。本 skill 拥有默认实现：`scripts/harness-status.mjs` 读取标准状态源并输出 text / markdown / JSON；dashboard、runner、README 只引用该 contract，不重复维护字段清单。
 
 ## Project Integration
 
@@ -93,7 +80,5 @@ CLI/对话紧凑面板必须至少包含 Current layer、Current ready、ready q
 | 缺失 checkpoint 仍声称无人值守安全 | 标记 warning，并要求 runner 补持久记录。 |
 
 ## Hard visual rule
-- 以 `Current ready` 作为调度大项（不是单个 task）。
-- 当 `Task packets:` 指向任务文件时，面板必须读取 `## Task checklist` 中的 `- [ ]` / `- [x]`。
-- 面板与 `.harness/status.md` 都应显示 `Task packet`、`Task progress`、逐项 `Tasks` 列表及 `[ ]/[x]` 状态。
-- 当 ready 大项存在但 packet 无 checklist 时，必须给出可见 warning，并提示补齐 `Task checklist`。
+
+`references/status-contract.md` 中的 Task Packet Checklist Rule 是唯一 source of truth：以 `Current ready` 作为调度大项，读取任务包 checklist，显示逐项 `[ ]/[x]` 状态，并在缺失 checklist 时给出 visible warning。

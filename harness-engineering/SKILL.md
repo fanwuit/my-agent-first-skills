@@ -133,6 +133,14 @@ Do not use execution prompt authoring to approve product scope, skip readiness, 
 
 Read `references/planning-carrier-decision.md` when governed work could be represented by more than one durable carrier: project queue, planning files, change packet, execution prompt pack, or implementation task packet. Fast-path answers and trivial-safe-change work should not create multiple carriers; choose chat-only closeout or a short entry unless durable state is genuinely needed.
 
+## Check Frequency Routing
+
+Read `references/check-frequency.md` when choosing between targeted checks and `npm run check:all`, when configuring recurring jobs, or when a governance change risks making verification too frequent. During iteration, prefer targeted checks; reserve `check:all` for phase closeout, commit/PR/push/release readiness, verification-chain changes, or unclear impact scope.
+
+## QA / Release / Monitor / Retro Absorption
+
+Read `references/local-qa-release-monitor-retro.md` when borrowing QA, release readiness, monitoring, or retro practices. These practices only provide evidence and next-layer candidates for local owner skills; they do not introduce an external lifecycle adapter or authorize ship/deploy/commit/push.
+
 ## 层级链路
 
 完整顺序以 `references/layer-progression.md` 为唯一 source of truth：

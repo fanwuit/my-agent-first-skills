@@ -33,9 +33,11 @@ description: Use when a project needs a status dashboard, drift report, autonomo
 
 启动 runner、刷新 status、处理 blocked/boundary/no-ready marker，或用户询问进度时，必须在 CLI/对话中直接展示紧凑状态面板；不要只给 `.harness/status.md` / `.harness/status.json` 路径。
 
-面板至少包含：Current layer、Current ready、ready queue 数量、runner marker、runner round、checkpoint result、verification stale/failed、human-needed blocker、status 文件路径。若 blocker 是端口占用，必须显示端口、PID、进程名和命令行。
+具体字段、端口 blocker 展示和 task packet checklist 规则以 `harness-visualization/references/status-contract.md` 为唯一 source of truth。dashboard 负责解释/诊断和 human-needed 判断；默认字段解析和 text/markdown/JSON 输出由 `harness-visualization/scripts/harness-status.mjs` 提供。
 
-如果 Current ready 指向 task packet、change packet 或等价任务包，CLI 面板必须把 ready 当作大项，并显示任务包路径、完成数/总数，以及任务包 checklist 中每个 `- [ ]` / `- [x]` 的状态；不要只显示 ready 级别的 pass/fail。
+## Monitor Boundary
+
+Monitor 只解释 status、日志、runner marker、verification stale/failed 和 human-needed blocker。它可以把发现路由到 `observable-fact-discovery` 或 `review-next-governance`，但不能静默修改队列，也不能把绿色仪表当作 product-ready。共享边界见 `harness-engineering/references/local-qa-release-monitor-retro.md`。
 
 ## 落地步骤
 
@@ -55,7 +57,5 @@ description: Use when a project needs a status dashboard, drift report, autonomo
 - 不要让 report 修改业务代码。
 
 ## Hard visual rule
-- 以 `Current ready` 作为调度大项（不是单个 task）。
-- 当 `Task packets:` 指向任务文件时，面板必须读取 `## Task checklist` 中的 `- [ ]` / `- [x]`。
-- 面板与 `.harness/status.md` 都应显示 `Task packet`、`Task progress`、逐项 `Tasks` 列表及 `[ ]/[x]` 状态。
-- 当 ready 大项存在但 packet 无 checklist 时，必须给出可见 warning，并提示补齐 `Task checklist`。
+
+不要在 dashboard 文档内复制展示字段清单。遵循 `harness-visualization/references/status-contract.md` 的 compact panel 和 Task Packet Checklist Rule；如果 contract 变化，先更新 shared reference 和 visualization tests。

@@ -89,7 +89,7 @@ runner 模板应在以下时机自动调用通用 `harness-visualization/scripts
 - runner 写入 timeout、failed、blocked、boundary 或 unrecognized marker checkpoint 后。
 - 外部 runner 初始化项目路径时，可先运行 `--init` 生成 `.harness/harness-status.config.json`，但默认路径项目不需要配置。
 
-业务项目不应复制可视化逻辑。业务项目只负责维护 scheduler queue、done archive、change packet、checkpoint、invocation log 和 verification 事实。
+业务项目不应复制可视化逻辑。业务项目只负责维护 scheduler queue、done archive、change packet、checkpoint、invocation log 和必要 verification 事实；stable verification record 仅在跨轮恢复、状态变更、release/PR、验证机制变更、失败/skipped 或 residual risk 时需要。
 
 ## Verification preset 要求
 
@@ -114,7 +114,7 @@ runner 模板只能执行受控 verification preset，不应把 queue 文本、c
 保持改动在 ready 项边界内。
 如果 ready 项进入实现代码，先运行 implementation-readiness-gate。
 运行匹配验证。
-退出前更新 scheduler queue、done archive、checkpoint 和必要的 verification record。
+退出前更新 scheduler queue、done archive、checkpoint；只有跨轮恢复、状态变更、失败/skipped/风险或验证机制变更需要未来复用时，才更新 stable verification record。
 runner 会在 worker 退出后刷新 `.harness/status.md` 和 `.harness/status.json`。
 只有项目规则要求自动 commit 且验证通过时，才 commit。
 如果 context 看起来接近 70%，写 checkpoint 并输出 AUTONOMOUS_CONTEXT_HANDOFF。

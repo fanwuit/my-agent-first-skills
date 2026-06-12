@@ -30,7 +30,7 @@ Verification -> Review / Next
 - 需要更新 NEXT scheduler、done archive、backlog、queue、Blocked 或 Not Now。
 - PoC 或 ADR 结论不能只留在聊天里。
 
-如果只是纯问答、只读分析或 trivial-safe-change，且没有改变项目状态、没有 durable follow-up、没有 blocked/not-now 项，可以使用 chat-only closeout：说明判断依据、验证和风险，但不更新队列。
+如果只是纯问答、只读分析或 trivial-safe-change，且没有改变项目状态、没有 durable follow-up、没有 blocked/not-now 项，可以使用 chat-only closeout：说明判断依据、验证和风险，但不更新队列，也不创建 stable verification record。
 
 ## 收口流程
 
@@ -70,7 +70,7 @@ Verification -> Review / Next
 
 声明完成、处理评审反馈、请求 review 或收尾分支前，读取 `references/completion-review-branch.md`。该 reference 固定：
 
-- completion evidence：命令、结果、新鲜度、覆盖范围、剩余风险和 skipped 原因。
+- completion evidence：命令、结果、新鲜度、覆盖范围、剩余风险和 skipped 原因；小改可放在最终回复，只有跨会话、状态变更、release/PR、验证机制改动或失败/skipped/风险时才写 stable verification record。
 - review feedback：分类 actionable / unclear / disagreed / not-now，先查证再改。
 - requesting review：说明 reviewer 应重点看什么，不把自写测试通过当最终验收。
 - branch finish：只作为 Review / Next 的可选执行动作，不自动 merge / push / open PR。
